@@ -1,17 +1,20 @@
-from ws4py.client.geventclient import WebSocketBaseClient
-
-
-class wsClient(WebSocketBaseClient):
-    def received_message(self, message):
-        pass
+from ivr.common.rpc import RPCSession
 
 
 class IVT(object):
-    def __init__(self, ivc):
-        self._ivc = ivc
+    def __init__(self):
+        self._session = None
+
+    def ivt_session_factory(self, transport):
+        self._session = IVTSession(self, transport)
+
+
+class IVTSession(RPCSession):
+    def __init__(self, ivt, transport):
+        super(IVTSession, self).__init__(transport)
 
 
 
-if __name__ == '__main__':
-    import gevent.monkey
-    gevent.monkey.patch_all()
+
+
+

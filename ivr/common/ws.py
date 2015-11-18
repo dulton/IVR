@@ -7,11 +7,13 @@ from ws4py.client.geventclient import WebSocketClient
 
 
 class WSClientTransport(WebSocketClient):
+    APP_FACTORY = None
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, url, app):
         # patch socket.sendall to protect it with lock,
         # in order to prevent sending data from multiple greenlets concurrently
-        WebSocketClient.__init__(self, *args, **kwargs)
+        WebSocketClient.__init__(self, url)
+        self._app = None
         self._lock = RLock()
         _sendall = self.sock.sendall
 
@@ -25,15 +27,27 @@ class WSClientTransport(WebSocketClient):
                 self._lock.release()
         self.sock.sendall = sendall
 
+    def connect(self):
+        super(WSClientTransport, self).connect()
+        self._app = self.APP_FACTORY(self)
+
     def closed(self, code, reason=None):
-        pass
+        self._app.on_close()
 
     def ponged(self, pong):
         pass
 
+    def received_message(self, message):
+        self._app.on_received_packet(message)
+
+    def force_shutdown(self):
+        # called by the upper layer, and no callback will be possible when closed
+        self._app = None
+        self.close()
+
 
 class WSServerTransport(WebSocket):
-    APP = None
+    APP_FACTORY = None
 
     def opened(self):
         # patch socket.sendall to protect it with lock,
@@ -51,22 +65,33 @@ class WSServerTransport(WebSocket):
                 self._lock.release()
         self.sock.sendall = sendall
 
+        # create app
+        self.environ
+        self._app = self.APP_FACTORY(self, )
+
     def closed(self, code, reason=None):
-        pass
+        app, self._app = self._app, None
+        if app:
+            app.on_close()
 
     def ponged(self, pong):
         pass
 
     def received_message(self, message):
-        self.APP.received_packet(message)
+        self._app.on_received_packet(message)
+
+    def force_shutdown(self):
+        # called by the upper layer, and no callback will be possible when closed
+        self._app = None
+        self.close()
 
 
 class WSServer(object):
-    def __init__(self, listen, app):
-        WSServerTransport.APP = app
+    def __init__(self, listen, app_factory):
+        WSServerTransport.APP_FACTORY = app_factory
         self._listen = listen
 
     def start(self):
-        self._server = WSGIServer(('localhost', 9000), WebSocketWSGIApplication(handler_cls=WSTransport))
+        self._server = WSGIServer(self._listen, WebSocketWSGIApplication(handler_cls=WSServerTransport))
         gevent.spawn(self._server.serve_forever())
 
