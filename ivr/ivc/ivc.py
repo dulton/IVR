@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+import gevent
+import time
+
 from ivr.common.rpc import RPCSession
 
 import logging
@@ -6,12 +10,9 @@ log = logging.getLogger(__name__)
 
 class IVT(RPCSession):
     def __init__(self, ivt_id, transport=None, encoder=None):
-        super(IVT, self).__init__(self, transport)
+        super(IVT, self).__init__(transport)
         self._id = ivt_id
-
-    @property
-    def is_online(self):
-        return self.closed
+        gevent.spawn(self._run)
 
     @property
     def id(self):
@@ -24,6 +25,22 @@ class IVT(RPCSession):
 
     def __str__(self):
         return "IVT {0}".format(self._id)
+
+    def refresh_info(self):
+        if self.is_online:
+            log.info('info: {0}'.format(self._send_request('getInfo')))
+            self._send_event('ev1')
+
+    def _run(self):
+        while True:
+            time.sleep(2)
+            self.refresh_info()
+
+    def rpc_echo(self, param):
+        return param
+
+    def event_ivcev(self):
+        log.info("ivc ev")
 
 
 class IVC(object):

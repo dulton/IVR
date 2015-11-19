@@ -1,15 +1,20 @@
-import gevent
+# -*- coding: utf-8 -*-
 from gevent.lock import RLock
+from gevent.event import Event
 from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
 from ws4py.websocket import WebSocket
 from ws4py.client.geventclient import WebSocketClient
 
+import logging
+log = logging.getLogger(__name__)
+
 
 class WSClientTransport(WebSocketClient):
     APP_FACTORY = None
 
-    def __init__(self, url, app):
+    def __init__(self, url):
+        self._close_event = Event()
         # patch socket.sendall to protect it with lock,
         # in order to prevent sending data from multiple greenlets concurrently
         WebSocketClient.__init__(self, url)
@@ -17,10 +22,10 @@ class WSClientTransport(WebSocketClient):
         self._lock = RLock()
         _sendall = self.sock.sendall
 
-        def sendall(self, data):
+        def sendall(data):
             self._lock.acquire()
             try:
-                _sendall(self, data)
+                _sendall(data)
             except:
                 raise
             finally:
@@ -30,24 +35,40 @@ class WSClientTransport(WebSocketClient):
     def connect(self):
         super(WSClientTransport, self).connect()
         self._app = self.APP_FACTORY(self)
+        log.info("Connected to IVC {0}".format(self.url))
 
     def closed(self, code, reason=None):
-        self._app.on_close()
+        if self._app:
+            self._app.on_close()
+        self._close_event.set()
 
     def ponged(self, pong):
         pass
 
     def received_message(self, message):
-        self._app.on_received_packet(message)
+        log.debug("Received message {}".format(message))
+        self._app.on_received_packet(str(message))
+
+    def send_packet(self, data):
+        log.debug("Sending message {}".format(data))
+        self.send(data)
 
     def force_shutdown(self):
         # called by the upper layer, and no callback will be possible when closed
         self._app = None
         self.close()
+        self._close_event.set()
+
+    def wait_close(self):
+        self._close_event.wait()
 
 
 class WSServerTransport(WebSocket):
     APP_FACTORY = None
+
+    def __init__(self, *args, **kwargs):
+        super(WSServerTransport, self).__init__(*args, **kwargs)
+        self._app = None
 
     def opened(self):
         # patch socket.sendall to protect it with lock,
@@ -55,10 +76,10 @@ class WSServerTransport(WebSocket):
         self._lock = RLock()
         _sendall = self.sock.sendall
 
-        def sendall(self, data):
+        def sendall(data):
             self._lock.acquire()
             try:
-                _sendall(self, data)
+                _sendall(data)
             except:
                 raise
             finally:
@@ -67,7 +88,7 @@ class WSServerTransport(WebSocket):
 
         # create app
         self.environ
-        self._app = self.APP_FACTORY(self, )
+        self._app = self.APP_FACTORY(self, 'ivt0')
 
     def closed(self, code, reason=None):
         app, self._app = self._app, None
@@ -78,10 +99,16 @@ class WSServerTransport(WebSocket):
         pass
 
     def received_message(self, message):
-        self._app.on_received_packet(message)
+        log.debug("Received message {}".format(message))
+        self._app.on_received_packet(str(message))
+
+    def send_packet(self, data):
+        log.debug("Sending message {}".format(data))
+        self.send(data)
 
     def force_shutdown(self):
         # called by the upper layer, and no callback will be possible when closed
+        log.info("shutdown")
         self._app = None
         self.close()
 
@@ -91,7 +118,8 @@ class WSServer(object):
         WSServerTransport.APP_FACTORY = app_factory
         self._listen = listen
 
-    def start(self):
+    def server_forever(self):
         self._server = WSGIServer(self._listen, WebSocketWSGIApplication(handler_cls=WSServerTransport))
-        gevent.spawn(self._server.serve_forever())
+        log.info("Starting server on {0}".format(self._listen))
+        self._server.serve_forever()
 

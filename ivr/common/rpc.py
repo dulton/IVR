@@ -16,7 +16,7 @@ request:
 
 response:
 {
-  result: {"key": "value"}
+  resp: {"key": "value"}
   seq: <sequence number>
 }
 
@@ -40,6 +40,25 @@ class InvalidRPCMessage(Exception):
     pass
 
 
+class ErrorResponse(Exception):
+    pass
+
+
+class NotOnline(Exception):
+    pass
+
+
+class JsonEncoder(object):
+
+    @classmethod
+    def marshal(self, msg):
+        return json.dumps(msg)
+
+    @classmethod
+    def unmarshal(self, data):
+        return json.loads(data)
+
+
 class RPCSession(object):
     DEFAULT_ENCODER = JsonEncoder
 
@@ -51,17 +70,17 @@ class RPCSession(object):
         self._transport = transport
 
     def set_transport(self, transport):
-        if not self.closed:
+        if not self.is_online:
             log.warning("{0} already has transport, closing the old one and replace it".format(self._app))
             self._transport.force_shutdown()
         self._transport = transport
 
     def on_received_packet(self, packet):
         # callback from transport
-        msg = self._encoder.Unmarshal(packet)
+        msg = self._encoder.unmarshal(packet)
         if 'req' in msg:
             self._handle_request(msg)
-        elif 'res' in msg:
+        elif 'resp' in msg or 'err' in msg:
             self._clientQ.put(msg)
         elif 'event' in msg:
             self._handle_event(msg)
@@ -78,7 +97,7 @@ class RPCSession(object):
                     result = m()
                 msg = {'seq': msg['seq']}
                 if result:
-                    msg['result'] = result
+                    msg['resp'] = result
             except Exception as e:
                 msg = {'err': {'code': -1, 'msg': str(e)}}
             self._transport.send_packet(self._encoder.marshal(msg))
@@ -94,57 +113,59 @@ class RPCSession(object):
             else:
                 m()
 
-    def _send_request(self, method, param):
+    def _send_request(self, method, param=None):
+        if not self.is_online:
+            raise NotOnline("Not on line")
         try:
             self._clientSeqNbr += 1
-            msg = {'req': method,
-                   'param': param,
-                   'seq': self._clientSeqNbr}
+            if param is None:
+                msg = {'req': method,
+                       'seq': self._clientSeqNbr}
+            else:
+                msg = {'req': method,
+                       'param': param,
+                       'seq': self._clientSeqNbr}
             self._transport.send_packet(self._encoder.marshal(msg))
             msg = self._clientQ.get(timeout=10)
             if msg['seq'] != self._clientSeqNbr:
                 raise InvalidRPCMessage("Invalid sequence number {0} instead of {1} "
                                         "in response message".format(self.msg['seq'], self._clientSeqNbr))
             if 'err' in msg:
-                raise Exception(msg['err']['msg'])
+                raise ErrorResponse(msg['err']['msg'])
             else:
-                return msg.get('result')
-        except:
+                return msg.get('resp')
+        except ErrorResponse:
             raise
-        finally:
-            self.close()
+        except Exception:
+            self.force_shutdown()
+            raise
 
-    def _send_event(self, method, param):
+    def _send_event(self, method, param=None):
+        if not self.is_online:
+            raise NotOnline("Not on line")
         try:
-            msg = {'event': method,
-                   'param': param}
+            if param is None:
+                msg = {'event': method}
+            else:
+                msg = {'event': method,
+                       'param': param}
             self._transport.send_packet(self._encoder.marshal(msg))
         except:
+            self.force_shutdown()
             raise
-        finally:
-            self.close()
+
 
     def on_close(self):
         # callback from transport
         self._transport = None
 
-    def close_session(self):
+    def force_shutdown(self):
         # called from upper layer
         transport, self._transport = self._transport, None
         if transport:
             transport.force_shutdown()
 
     @property
-    def closed(self):
-        return self._transport is None or self._transport.terminated
+    def is_online(self):
+        return self._transport is not None and not self._transport.terminated
 
-
-class JsonEncoder(object):
-
-    @classmethod
-    def marshal(self, msg):
-        return json.dumps(msg)
-
-    @classmethod
-    def unmarshal(self, data):
-        return json.loads(data)

@@ -7,8 +7,8 @@ README = open(os.path.join(here, 'README.md')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.md')).read()
 
 requires = [
-    'gevent=1.0'
-    'ws4py=0.3.4'
+    'gevent==1.0.2',
+    'ws4py==0.3.4'
 ]
 
 if sys.version_info < (2,7):
@@ -50,5 +50,8 @@ setup(name='IVR',
       #         ('/etc/init.d', ['initscripts/storlever']),
       #     ],
       entry_points="""
+      [console_scripts]
+      ivc = ivr.ivc.main:main
+      ivt = ivr.ivt.main:main
       """,
       )
