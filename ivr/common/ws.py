@@ -87,8 +87,7 @@ class WSServerTransport(WebSocket):
         self.sock.sendall = sendall
 
         # create app
-        self.environ
-        self._app = self.APP_FACTORY(self, 'ivt0')
+        self._app = self.APP_FACTORY(self, self.environ)
 
     def closed(self, code, reason=None):
         app, self._app = self._app, None

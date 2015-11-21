@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import gevent
 import time
+import urlparse
 
 from ivr.common.rpc import RPCSession
 
@@ -47,12 +48,18 @@ class IVC(object):
     def __init__(self):
         self._ivts = {}
 
-    def ivt_online(self, transport, ivt_id):
+    def ivt_online(self, transport, wsgi_environ):
+        if not wsgi_environ.get('QUERY_STRING'):
+            raise Exception("No IVT ID is given")
+        query = urlparse.parse_qs(wsgi_environ['QUERY_STRING'])
+        if 'id' not in query:
+            raise Exception('No IVT ID is given')
+        ivt_id = query['id'][0]
         if ivt_id not in self._ivts:
             #log.error("Unkown IVT {0} connected".format(ivt_id))
             #raise Exception("Unknown IVT connected")
             ivt = IVT(ivt_id, transport)
-            log.info("New {0} registered".format(ivt))
+            log.info("New {} registered".format(ivt))
         else:
             ivt = self._ivts[ivt_id]
             ivt.set_transport(transport)

@@ -9,9 +9,9 @@ log = logging.getLogger(__name__)
 
 
 class IVT(object):
-    def __init__(self):
+    def __init__(self, ivt_id):
         self._session = None
-        self.id = 'ivt0'
+        self.id = ivt_id
         gevent.spawn(self.req_echo)
 
     def ivt_session_factory(self, transport):
