@@ -30,7 +30,6 @@ class IVT(RPCSession):
     def refresh_info(self):
         if self.is_online:
             log.info('info: {0}'.format(self._send_request('getInfo')))
-            self._send_event('ev1')
 
     def _run(self):
         while True:
@@ -40,21 +39,24 @@ class IVT(RPCSession):
     def rpc_echo(self, param):
         return param
 
-    def event_ivcev(self):
-        log.info("ivc ev")
+    def get_stream(self, stream_id):
+        pass
 
 
 class IVC(object):
     def __init__(self):
         self._ivts = {}
+        self.stream_sessions = {}
+        """
+        {<camera>: {<stream>: {<protocol>: {last_keepalive: <>, }}}}
+        """
 
-    def ivt_online(self, transport, wsgi_environ):
-        if not wsgi_environ.get('QUERY_STRING'):
-            raise Exception("No IVT ID is given")
-        query = urlparse.parse_qs(wsgi_environ['QUERY_STRING'])
-        if 'id' not in query:
+    def ivt_online(self, transport, params):
+        if not params.get('id'):
             raise Exception('No IVT ID is given')
-        ivt_id = query['id'][0]
+        ivt_id = params['id']
+        if not ivt_id:
+            raise Exception('IVT ID should not be empty')
         if ivt_id not in self._ivts:
             #log.error("Unkown IVT {0} connected".format(ivt_id))
             #raise Exception("Unknown IVT connected")
@@ -64,3 +66,14 @@ class IVC(object):
             ivt = self._ivts[ivt_id]
             ivt.set_transport(transport)
         return ivt
+
+    def get_stream(self, camera_id, stream_id, protocol='hls', keepalive_required=False, create=True):
+        pass
+        # find corresponding ivt session and ask for stream
+        # ask nginx-rtmp to
+
+    def delete_stream(self, camera_id, stream_id, protocol='hls', force=False):
+        pass
+
+    def keepalive_stream(self, camera_id, stream_id, protocol='hls'):
+        pass

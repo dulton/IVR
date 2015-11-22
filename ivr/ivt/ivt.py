@@ -21,12 +21,6 @@ class IVT(object):
     def session_closed(self):
         self._session = None
 
-    def req_echo(self):
-        while True:
-            time.sleep(3)
-            if self._session:
-                self._session._send_request('echo', {'rpc': 'echo'})
-                self._session._send_event('ivcev')
 
 
 class IVTSession(RPCSession):
@@ -41,9 +35,6 @@ class IVTSession(RPCSession):
     def rpc_getInfo(self):
         return {'id': self._ivt.id}
 
-    def event_ev1(self):
-        log.debug("ev1 received")
-        return
 
 
 

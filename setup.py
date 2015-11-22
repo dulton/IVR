@@ -9,7 +9,8 @@ CHANGES = open(os.path.join(here, 'CHANGES.md')).read()
 requires = [
     'gevent==1.0.2',
     'ws4py==0.3.4',
-    'PyYaml==3.11'
+    'PyYaml==3.11',
+    'flask==0.10.1',
 ]
 
 if sys.version_info < (2,7):

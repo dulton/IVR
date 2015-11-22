@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import urlparse
+
 from gevent.lock import RLock
 from gevent.event import Event
 from ws4py.server.geventserver import WSGIServer
@@ -87,7 +89,12 @@ class WSServerTransport(WebSocket):
         self.sock.sendall = sendall
 
         # create app
-        self._app = self.APP_FACTORY(self, self.environ)
+        if not self.environ.get('QUERY_STRING'):
+            query = {}
+        else:
+            query = urlparse.parse_qs(self.environ['QUERY_STRING'])
+        query = {key: value[0] for key, value in query.iteritems()}
+        self._app = self.APP_FACTORY(self, query)
 
     def closed(self, code, reason=None):
         app, self._app = self._app, None
