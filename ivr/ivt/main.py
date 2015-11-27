@@ -22,12 +22,14 @@ def main():
     config = {
         'ivc': 'ws://127.0.0.1:5000/ivc',
         'id': 'ivt1',
+        'cameras': {'c01': {'rtp': 'rtp://x.x.x.x/abc'},
+                    'c02': {'rtp': 'rtp://x.x.x.x/xyz'},},
     }
 
     import logging
     log = logging.getLogger(__name__)
 
-    ivt = IVT(config['id'])
+    ivt = IVT(config['id'], config['cameras'])
     WSClientTransport.APP_FACTORY = ivt.ivt_session_factory
     url = config['ivc']+'?'+urllib.urlencode({'id': config['id']})
     while True:

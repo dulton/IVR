@@ -3,14 +3,29 @@ import json
 
 from gevent.queue import Queue
 
+from ivr.common.exception import IVRError
+
 import logging
 log = logging.getLogger(__name__)
+
+"""
+Simple two directional RPC and event notification
+over packet/message-based reliable transport (i.e. websocket)
+
+No fancy features as pipeline, bash request etc.
+
+when act as a RPC client, _send_request may raise ErrorResponse, which
+means server side exception when handle request; any other Exception raised
+by _send_request treated as fatal error, which will close RPC session immediately
+
+
+"""
 
 """
 request:
 {
   req: <method name>
-  param: {"key": "value"}
+  params: {"key": "value"}
   seq: <sequence number>
 }
 
@@ -32,19 +47,19 @@ event:
 """
 
 
-class InvalidRPCRequest(Exception):
+class InvalidRPCRequest(IVRError):
     pass
 
 
-class InvalidRPCMessage(Exception):
+class InvalidRPCMessage(IVRError):
     pass
 
 
-class ErrorResponse(Exception):
+class ErrorResponse(IVRError):
     pass
 
 
-class NotOnline(Exception):
+class NotOnline(IVRError):
     pass
 
 
@@ -90,9 +105,10 @@ class RPCSession(object):
         method = msg['req']
         m = getattr(self, 'rpc_'+method, None)
         if m and callable(m):
+            log.info('Received new request {0}: {1}'.format(method, msg.get('params')))
             try:
-                if msg.get('param'):
-                    result = m(msg['param'])
+                if msg.get('params'):
+                    result = m(msg['params'])
                 else:
                     result = m()
                 msg = {'seq': msg['seq']}
@@ -107,23 +123,24 @@ class RPCSession(object):
     def _handle_event(self, msg):
         method = msg['event']
         m = getattr(self, 'event_'+method, None)
+        log.info('Received new event {0}: {1}'.format(method, msg.get('params')))
         if m and callable(m):
-            if msg.get('param'):
-                m(msg['param'])
+            if msg.get('params'):
+                m(msg['params'])
             else:
                 m()
 
-    def _send_request(self, method, param=None):
+    def _send_request(self, method, params=None):
         if not self.is_online:
             raise NotOnline("Not on line")
         try:
             self._clientSeqNbr += 1
-            if param is None:
+            if params is None:
                 msg = {'req': method,
                        'seq': self._clientSeqNbr}
             else:
                 msg = {'req': method,
-                       'param': param,
+                       'params': params,
                        'seq': self._clientSeqNbr}
             self._transport.send_packet(self._encoder.marshal(msg))
             msg = self._clientQ.get(timeout=10)
@@ -140,20 +157,19 @@ class RPCSession(object):
             self.force_shutdown()
             raise
 
-    def _send_event(self, method, param=None):
+    def _send_event(self, method, params=None):
         if not self.is_online:
             raise NotOnline("Not on line")
         try:
-            if param is None:
+            if params is None:
                 msg = {'event': method}
             else:
                 msg = {'event': method,
-                       'param': param}
+                       'params': params}
             self._transport.send_packet(self._encoder.marshal(msg))
         except:
             self.force_shutdown()
             raise
-
 
     def on_close(self):
         # callback from transport
