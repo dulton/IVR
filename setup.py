@@ -13,7 +13,8 @@ requires = [
     'flask==0.10.1',
 ]
 
-if sys.version_info < (2,7):
+if sys.version_info < (2, 7):
+    requires.append('ordereddict')
     requires.append('unittest2')
 
 setup(name='IVR',

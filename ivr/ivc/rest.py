@@ -3,10 +3,36 @@
 from flask import Blueprint, jsonify
 from flask import request, current_app
 
+from ivr.common.schema import Schema, Optional, Default, IntVal
+
 import logging
 log = logging.getLogger(__name__)
 
 api = Blueprint('stream', __name__)
+
+
+get_cameras_list_schema = Schema({Optional('start'): Default(IntVal(min=0), default=0),
+                                  Optional('limit'): Default(IntVal(min=0, max=100), default=20)})
+
+
+@api.route('/cameras')
+def get_cameras_list():
+    req = get_cameras_list_schema.validate(request.args.to_dict())
+    start = req['start']
+    limit = req['limit']
+    total = len(current_app.camera_mgr)
+    resp = {'total': total,
+            'start': req['start'],
+            'list': []}
+    if limit > 0 and start < total:
+        index = 0
+        for camera in current_app.camera_mgr.iter_camera():
+            if index >= start:
+                if index < start+limit:
+                    resp['list'].append(camera)
+                else:
+                    break
+    return jsonify(resp)
 
 
 @api.route('/cameras/<camera_id>/streams/<format>')

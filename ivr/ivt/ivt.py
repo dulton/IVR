@@ -10,10 +10,11 @@ log = logging.getLogger(__name__)
 
 
 class Camera(object):
-    def __init__(self, camera_id, rtp=None):
+    def __init__(self, camera_id, detail):
         self._id = camera_id
-        self._rtp = rtp
-        self._streams = {}
+        self._detail = detail
+        self._streams = detail['streams']
+        self._rtp = self._streams[0]['rtp']
 
     @property
     def id(self):
@@ -21,7 +22,7 @@ class Camera(object):
 
     @property
     def info(self):
-        return {'rtp': self._rtp}
+        return self._detail
 
     def rtmp_publish(self, rtmp_url):
         if rtmp_url in self._streams:
@@ -40,10 +41,9 @@ class Camera(object):
 class IVT(object):
     def __init__(self, ivt_id, cameras):
         self._session = None
-        self._cameras = {camera_id: Camera(camera_id, **camera)
+        self._cameras = {camera_id: Camera(camera_id, camera)
                          for camera_id, camera in cameras.iteritems()}
         self.id = ivt_id
-        gevent.spawn(self.req_echo)
 
     def ivt_session_factory(self, transport):
         self._session = IVTSession(self, transport)

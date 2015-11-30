@@ -22,8 +22,26 @@ def main():
     config = {
         'ivc': 'ws://127.0.0.1:5000/ivc',
         'id': 'ivt1',
-        'cameras': {'c01': {'rtp': 'rtp://x.x.x.x/abc'},
-                    'c02': {'rtp': 'rtp://x.x.x.x/xyz'},},
+        'cameras': {'c01': {'location': 'Hanzhou',
+                            'desc': 'camera c01',
+                            'streams': [
+                                {'id': 's01',
+                                 'height': 1024,
+                                 'width': 768,
+                                 'bitrate': 1024,
+                                 'fps': 25,
+                                 'rtp': 'rtp://x.x.x.x/abc',
+                                 'ip': 'x.x.x.x',}]},
+                    'c02': {'location': 'Hanzhou',
+                            'desc': 'camera c02',
+                            'streams': [
+                                {'id': 's01',
+                                 'height': 640,
+                                 'width': 480,
+                                 'bitrate': 512,
+                                 'fps': 30,
+                                 'rtp': 'rtp://y.y.y.y/abc',
+                                 'ip': 'y.y.y.y',}]},},
     }
 
     import logging
