@@ -37,7 +37,7 @@ class WSClientTransport(WebSocketClient):
     def connect(self):
         super(WSClientTransport, self).connect()
         self._app = self.APP_FACTORY(self)
-        log.info("Connected to IVC {0}".format(self.url))
+        log.info("Connected to websocket server {0}".format(self.url))
 
     def closed(self, code, reason=None):
         if self._app:
@@ -48,11 +48,11 @@ class WSClientTransport(WebSocketClient):
         pass
 
     def received_message(self, message):
-        log.debug("Received message {}".format(message))
+        log.debug("Received message {0}".format(message))
         self._app.on_received_packet(str(message))
 
     def send_packet(self, data):
-        log.debug("Sending message {}".format(data))
+        log.debug("Sending message {0}".format(data))
         self.send(data)
 
     def force_shutdown(self):
@@ -93,7 +93,8 @@ class WSServerTransport(WebSocket):
             query = {}
         else:
             query = urlparse.parse_qs(self.environ['QUERY_STRING'])
-        query = {key: value[0] for key, value in query.iteritems()}
+        for key, value in query.iteritems():
+            query[key] = value[0]
         self._app = self.APP_FACTORY(self, query)
 
     def closed(self, code, reason=None):
@@ -105,11 +106,11 @@ class WSServerTransport(WebSocket):
         pass
 
     def received_message(self, message):
-        log.debug("Received message {}".format(message))
+        log.debug("Received message {0}".format(message))
         self._app.on_received_packet(str(message))
 
     def send_packet(self, data):
-        log.debug("Sending message {}".format(data))
+        log.debug("Sending message {0}".format(data))
         self.send(data)
 
     def force_shutdown(self):

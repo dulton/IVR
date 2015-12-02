@@ -18,7 +18,7 @@ conf_schema = Schema({
 
 
 def main():
-    default_log_config()
+    default_log_config(debug=True)
     import logging
     log = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ def main():
             'rest_listen': '0.0.0.0:5001',
             'ws_listen': '0.0.0.0:5000',
             'rtmp_publish_url_prefix': 'rtmp://121.41.72.231/live/',
-            'stream_ttl': 300,
+            'stream_ttl': 20,
         }
 
         camera_mgr = CameraManager()

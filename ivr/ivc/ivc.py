@@ -43,10 +43,11 @@ class IVT(RPCSession):
         return len(self._cameras)
 
     def iter_camera(self):
-        print 'Cameras'
         for camera in self._cameras.itervalues():
-            print camera
             yield camera
+
+    def get_camera(self, camera_id):
+        return self._cameras.get(camera_id)
 
     def refresh_info(self):
         if self.is_online:
@@ -60,7 +61,7 @@ class IVT(RPCSession):
                 self.refresh_info()
             except Exception:
                 log.exception("Failed to refresh IVT info")
-            time.sleep(10)
+            time.sleep(30)
 
     def rpc_echo(self, param):
         return param
@@ -92,7 +93,7 @@ class CameraManager(object):
             #raise Exception("Unknown IVT connected")
             ivt = IVT(ivt_id, transport)
             self._ivts[ivt_id] = ivt
-            log.info("New {} registered".format(ivt))
+            log.info("New {0} registered".format(ivt))
         else:
             ivt = self._ivts[ivt_id]
             ivt.set_transport(transport)
@@ -104,18 +105,22 @@ class CameraManager(object):
                 return ivt
 
     def iter_camera(self):
-        print 'IVT'
         for ivt in self._ivts.itervalues():
-            print ivt
             for camera in ivt.iter_camera():
                 yield camera
 
+    def get_camera(self, camera_id):
+        ivt = self._find_ivt(camera_id)
+        if not ivt:
+            raise IVRError('Camera {0} not found'.format(camera_id))
+        camera = ivt.get_camera(camera_id)
+        if not camera:
+            raise IVRError('Camera {0} not found'.format(camera_id))
+        return camera
+
     def __len__(self):
         total_camera = 0
-        print 'IVT total'
-        print self._ivts, len(self._ivts)
         for ivt in self._ivts.itervalues():
-            print ivt
             total_camera += len(ivt)
         return total_camera
 
@@ -150,8 +155,14 @@ class StreamManager(object):
         self._camera_mgr = camera_mgr
         self._rtmp_publish_url_prefix = rtmp_publish_url_prefix
         self._stream_ttl = stream_ttl
+        gevent.spawn(self._chk_stream_timeout)
 
-    def get_stream(self, camera_id, stream_format='hls', keepalive_required=False, create=True):
+    def get_live_streams(self, camera_id):
+        if camera_id not in self._streams:
+            raise IVRError('No live stream found for camera {0}'.format(camera_id))
+        return self._streams[camera_id]
+
+    def request_live_stream(self, camera_id, stream_format='hls', keepalive_required=False, create=True):
         for _ in xrange(5):
             # if we are already setting up the stream, retry several times,
             # and return to user only when it is finally ready
@@ -176,26 +187,26 @@ class StreamManager(object):
                 return stream['url']
         raise IVRError("Failed to get {0} stream for camera {1}".format(stream_format, camera_id))
 
-    def delete_stream(self, camera_id, stream_format='hls', force=False):
+    def delete_live_stream(self, camera_id, stream_format='hls', force=False):
         if camera_id not in self._streams:
-            raise IVRError("No such camera {0}".format(camera_id))
+            raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
         if stream_format not in self._streams[camera_id]:
-            raise IVRError("No stream {0} in camera {1}".format(stream_format, camera_id))
+            raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
         stream = self._streams[camera_id][stream_format]
         if force:
-            self._destroy_stream(camera_id, stream_format)
-        elif not stream['keepalive_required']:
+            log.info('Force tearing down camera {0} stream {1}'.format(camera_id, stream))
             self._destroy_stream(camera_id, stream_format)
         else:
             # mark it keepalive required, so when no one is watching, this stream will
             # be deleted automatically
+            log.info('Wait for last user leave before tearing down camera {0} stream {1}'.format(camera_id, stream))
             stream['keepalive_required'] = True
 
-    def keepalive_stream(self, camera_id, stream_format='hls'):
+    def keepalive_live_stream(self, camera_id, stream_format='hls'):
         if camera_id not in self._streams:
-            raise IVRError("No such camera {0}".format(camera_id))
+            raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
         if stream_format not in self._streams[camera_id]:
-            raise IVRError("No stream {0} in camera {1}".format(stream_format, camera_id))
+            raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
         stream = self._streams[camera_id][stream_format]
         stream['last_keepalive'] = time.time()
 
@@ -226,11 +237,17 @@ class StreamManager(object):
         else:
             raise IVRError('Unsupported stream format {0}'.format(stream_format))
 
-
     def _destroy_stream(self, camera_id, stream_format):
-        stream = self._streams[camera_id][stream_format]
-        rtmp_publish_url = os.path.join(self._rtmp_publish_url_prefix, str(stream['id']))
-        self._camera_mgr.rtmp_stop_publish(camera_id, rtmp_publish_url)
+        stream = self._streams[camera_id].pop(stream_format, None)
+        if not stream:
+            raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
+        if not self._streams[camera_id]:
+            self._streams.pop(camera_id, None)
+        if stream_format == 'hls':
+            rtmp_publish_url = os.path.join(self._rtmp_publish_url_prefix, str(stream['id']))
+            self._camera_mgr.rtmp_stop_publish(camera_id, rtmp_publish_url)
+        else:
+            raise IVRError('Unsupported stream format {0}'.format(stream_format))
 
     def _chk_stream_timeout(self):
         while True:
@@ -241,6 +258,9 @@ class StreamManager(object):
                     for stream_format, stream in streams.iteritems():
                         if stream['keepalive_required']:
                             if stream['last_keepalive'] + self._stream_ttl < now:
+                                log.info('camera {0} stream {1} expired, tearing down'.format(camera_id, stream))
                                 self._destroy_stream(camera_id, stream_format)
+                                break
+                    break
             except Exception:
                 log.exception("Failed to check stream timeout")

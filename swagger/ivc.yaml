@@ -34,14 +34,15 @@ paths:
           description: 摄像头列表
           schema:
             type: object
+            required:
+              - total
+              - start
             properties:
               total:
                 type: integer
-                required: true
                 description: 摄像头总数
               start:
                 type: integer
-                required: true
                 description: 摄像头的起始索引
               list:
                 type: array
@@ -59,12 +60,27 @@ paths:
           description: 摄像头信息
           schema:
             $ref: '#/definitions/camera'
-  /cameras/{camera_id}/streams/{format}:
+  /cameras/{camera_id}/live:
     get:
-      summary: 获取媒体流URL
+      summary: 获取正在进行的直播流
+      description:
+        获取正在进行的直播流
+      tags: [Live stream]
+      parameters:
+        - $ref: '#/parameters/camera_id'
+      responses:
+        '200':
+          description: 媒体流URL
+          schema:
+            type: object
+            additionalProperties:
+              $ref: '#/definitions/live_stream'
+  /cameras/{camera_id}/live/{format}:
+    post:
+      summary: 请求直播媒体流URL
       description:
         客户端可通过该API获取指定摄像机的指定媒体流。
-      tags: [Stream]
+      tags: [Live stream]
       parameters:
         - $ref: '#/parameters/camera_id'
         - $ref: '#/parameters/format'
@@ -85,36 +101,36 @@ paths:
           description: 媒体流URL
           schema:
             type: object
+            required:
+              - url
             properties:
               url:
                 type: string
-                required: true
                 description: 媒体流URL
     delete:
-      summary: 关闭媒体流
+      summary: 关闭直播媒体流
       description: 客户端可通过该API关闭必定媒体流。
-      tags:
-        - Stream
+      tags: [Live stream]
       parameters:
         - $ref: '#/parameters/camera_id'
         - $ref: '#/parameters/format'
         - name: force
           in: query
-          description: 是否强行关闭该媒体流，当为true时，无论是否有人观看，均关闭该流；为false时，若有人观看，则等观看结束后再关闭该媒体流。
+          description: 是否强行关闭该媒体流，当为true时，无论是否有人观看，均关闭该流；为false时，则等所有人结束观看后再关闭该媒体流。
           type: boolean
           required: false
           default: false
       responses:
         '200':
           description: 成功接收删除命令
-  /cameras/{camera_id}/streams/{format}/keepalive:
+  /cameras/{camera_id}/live/{format}/keepalive:
     post:
-      summary: 客户端keepalive
-      description: 客户端通过定期keepalive表明自己仍在观看该媒体流
+      summary: 直播客户端keepalive
+      description: 客户端通过定期keepalive表明自己仍在观看该直播媒体流
       parameters:
         - $ref: '#/parameters/camera_id'
         - $ref: '#/parameters/format'
-      tags: [Stream]
+      tags: [Live stream]
       responses:
         '200':
           description: keepalive成功
@@ -137,28 +153,46 @@ parameters:
 definitions:
   stream:
     type: object
+    required:
+      - format
     properties:
       format:
         type: string
-        required: true
         description: 媒体流的格式
   camera:
     type: object
+    required:
+      - id
     properties:
       id:
         type: string
-        required: true
         description: 摄像头ID
       location:
         type: string
-        required: false
         description: 摄像头位置信息
       desc:
         type: string
-        required: false
         description: 摄像头的文字描述
       streams:
         type: array
         items:
           - $ref: '#/definitions/stream'
+  live_stream:
+    type: object
+    required:
+      - keepalive_required
+      - ready
+    properties:
+      last_keepalive:
+        type: integer
+        description: 最近一次keepalive的epoch
+      keepalive_required:
+        type: boolean
+        description: 直播流是否在一段时间没有keepalive后自动关闭
+      url:
+        type: string
+        description: 直播流的URL
+      ready:
+        type: boolean
+        description: 直播流是否已经准备就绪
 

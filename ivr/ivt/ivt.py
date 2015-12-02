@@ -41,8 +41,9 @@ class Camera(object):
 class IVT(object):
     def __init__(self, ivt_id, cameras):
         self._session = None
-        self._cameras = {camera_id: Camera(camera_id, camera)
-                         for camera_id, camera in cameras.iteritems()}
+        self._cameras = {}
+        for camera_id, camera in cameras.iteritems():
+            self._cameras[camera_id] = Camera(camera_id, camera)
         self.id = ivt_id
 
     def ivt_session_factory(self, transport):
@@ -56,7 +57,10 @@ class IVT(object):
         return item in self._cameras
 
     def cameras_info(self):
-        return {camera_id: camera.info for camera_id, camera in self._cameras.iteritems()}
+        info = {}
+        for camera_id, camera in self._cameras.iteritems():
+            info[camera_id] = camera.info
+        return info
 
     def rtmp_publish(self, camera_id, publish_url):
         camera = self._cameras.get(camera_id)

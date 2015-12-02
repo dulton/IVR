@@ -17,12 +17,12 @@ config_schema = Schema({
 
 
 def main():
-    default_log_config()
+    default_log_config(debug=True)
 
     config = {
         'ivc': 'ws://127.0.0.1:5000/ivc',
         'id': 'ivt1',
-        'cameras': {'c01': {'location': 'Hanzhou',
+        'cameras': {'c01': {'location': 'Hangzhou',
                             'desc': 'camera c01',
                             'streams': [
                                 {'id': 's01',
@@ -32,7 +32,7 @@ def main():
                                  'fps': 25,
                                  'rtp': 'rtp://x.x.x.x/abc',
                                  'ip': 'x.x.x.x',}]},
-                    'c02': {'location': 'Hanzhou',
+                    'c02': {'location': 'Hangzhou',
                             'desc': 'camera c02',
                             'streams': [
                                 {'id': 's01',
@@ -55,6 +55,7 @@ def main():
             client = WSClientTransport(url)
             client.connect()
             client.wait_close()
+            time.sleep(10)
         except:
             log.exception("Client session closed")
             time.sleep(10)

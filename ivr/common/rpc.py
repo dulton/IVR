@@ -85,8 +85,8 @@ class RPCSession(object):
         self._transport = transport
 
     def set_transport(self, transport):
-        if not self.is_online:
-            log.warning("{0} already has transport, closing the old one and replace it".format(self._app))
+        if self.is_online:
+            log.warning("{0} already has transport, closing the old one and replace it".format(self))
             self._transport.force_shutdown()
         self._transport = transport
 
@@ -111,9 +111,7 @@ class RPCSession(object):
                     result = m(msg['params'])
                 else:
                     result = m()
-                msg = {'seq': msg['seq']}
-                if result:
-                    msg['resp'] = result
+                msg = {'seq': msg['seq'], 'resp': result}
             except Exception as e:
                 msg = {'err': {'code': -1, 'msg': str(e)}}
             self._transport.send_packet(self._encoder.marshal(msg))

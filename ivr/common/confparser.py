@@ -14,4 +14,4 @@ def parse(file_path):
         with open(file_path) as f:
             return yaml.load(f)
     else:
-        raise Exception("Configure file {} does not exit".format(file_path))
+        raise Exception("Configure file {0} does not exit".format(file_path))
