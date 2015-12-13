@@ -2,6 +2,8 @@
 import time
 import gevent
 
+from streamswitch.stream_mngr import create_stream
+from streamswitch.sender_mngr import create_sender
 from ivr.common.rpc import RPCSession
 from ivr.common.exception import IVRError
 
@@ -13,6 +15,7 @@ class Camera(object):
     def __init__(self, camera_id, detail):
         self._id = camera_id
         self._detail = detail
+        self._detail['id'] = camera_id
         self._streams = detail['streams']
         self._rtp = self._streams[0]['rtp']
 
