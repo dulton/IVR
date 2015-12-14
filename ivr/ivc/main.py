@@ -40,7 +40,7 @@ def main():
             return str(error), error.http_status_code
 
         rest_app = Flask(__name__)
-        from ivr.ivc.rest import api as ivc_rest
+        from ivr.ivc.flask_rest import api as ivc_rest
         rest_app.register_blueprint(ivc_rest, url_prefix='/api/ivc/v1')
         rest_app.stream_mgr = stream_mgr
         rest_app.camera_mgr = camera_mgr
@@ -56,7 +56,17 @@ def main():
 
         rest_server = WSGIServer(config['rest_listen'], rest_app)
 
-        gevent.joinall(map(gevent.spawn, (ws_server.server_forever, rest_server.serve_forever)))
+        from pyramid.config import Configurator
+        from pyramid.renderers import JSON
+        from ivr.common.rest import CustomJSONEncoder
+
+
+        config = Configurator()
+        config.add_renderer(None, JSON(indent=4, check_circular=True, cls=CustomJSONEncoder))
+        config.include('ivr.ivc.rest', route_prefix='ivr/api/v1')
+        rest_server2 = WSGIServer('0.0.0.0:5002', config.make_wsgi_app())
+
+        gevent.joinall(map(gevent.spawn, (ws_server.server_forever, rest_server.serve_forever, rest_server2.serve_forever)))
         log.info("Quit")
     except Exception:
         log.exception("Failed to start IVC")
