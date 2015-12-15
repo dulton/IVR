@@ -1,17 +1,13 @@
-from pyramid.view import view_config
-
 from ivr.common.rest import get_view, post_view, put_view, delete_view
 from ivr.common.rest import get_params_from_request
 from ivr.common.schema import Schema, Optional, Default, IntVal
-
-
 
 
 def includeme(config):
     # block device list resource
     # GET:    block device list
     config.add_route('camera_list', '/cameras')
-    config.add_route('camera', '/cameras/{camera}')
+    config.add_route('camera', '/cameras/{camera_id}')
 
 
 get_cameras_list_schema = Schema({Optional('start'): Default(IntVal(min=0), default=0),
@@ -23,13 +19,13 @@ def get_camera_list(request):
     req = get_params_from_request(request, get_cameras_list_schema)
     start = req['start']
     limit = req['limit']
-    total = len(current_app.camera_mgr)
+    total = len(request.registry.camera_mgr)
     resp = {'total': total,
             'start': req['start'],
             'list': []}
     if limit > 0 and start < total:
         index = 0
-        for camera in current_app.camera_mgr.iter_camera():
+        for camera in request.registry.camera_mgr.iter_camera():
             if index >= start:
                 if index < start+limit:
                     resp['list'].append(camera)
@@ -39,10 +35,6 @@ def get_camera_list(request):
 
 @get_view(route_name='camera')
 def get_camera(request):
-    return {'c01': {'ip': '1.2.3.4'}}
+    return request.registry.camera_mgr.get_camera(request.matchdict['camera_id'])
 
-
-@post_view(route_name='camera')
-def post_camera(request):
-    return {'post': 'ok'}
 
