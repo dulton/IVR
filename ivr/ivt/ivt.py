@@ -2,8 +2,6 @@
 import time
 import gevent
 
-from streamswitch.stream_mngr import create_stream
-from streamswitch.sender_mngr import create_sender
 from ivr.common.rpc import RPCSession
 from ivr.common.exception import IVRError
 

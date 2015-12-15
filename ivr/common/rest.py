@@ -60,7 +60,7 @@ class _rest_view(view_config):
         # to get caller's module, in order to inject preflight_handler to that module
         # so when scan configuration, pyramid will pick OPTIONS for that route
         module = inspect.getmodule(inspect.getouterframes(inspect.currentframe())[0][0].f_back)
-        setattr(module, str(id(handler)), handler)
+        setattr(module, 'preflight_'+route_name, handler)
 
 
 class get_view(_rest_view):

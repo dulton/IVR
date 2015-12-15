@@ -1,6 +1,10 @@
+from pyramid.view import view_config
+
 from ivr.common.rest import get_view, post_view, put_view, delete_view
 from ivr.common.rest import get_params_from_request
-from pyramid.view import view_config
+from ivr.common.schema import Schema, Optional, Default, IntVal
+
+
 
 
 def includeme(config):
@@ -9,26 +13,28 @@ def includeme(config):
     config.add_route('camera_list', '/cameras')
     config.add_route('camera', '/cameras/{camera}')
 
-"""
-def preflight_handler(request):
-    return {'ok': 'nice'}
 
+get_cameras_list_schema = Schema({Optional('start'): Default(IntVal(min=0), default=0),
+                                  Optional('limit'): Default(IntVal(min=0, max=100), default=20)})
 
-class _rest_view(view_config):
-    def __init__(self, **settings):
-        method = self.__class__.__name__.split('_')[0].upper()
-        super(_rest_view, self).__init__(request_method=method,
-                                         **settings)
-        view_config(request_method='POST', route_name=settings['route_name'])(preflight_handler)
-
-
-class get_view(_rest_view):
-    pass
-"""
 
 @get_view(route_name='camera_list')
 def get_camera_list(request):
-    return {'c01': {'ip': '1.2.3.4'}, 'c02': {'ip': '3.4.5.6'}}
+    req = get_params_from_request(request, get_cameras_list_schema)
+    start = req['start']
+    limit = req['limit']
+    total = len(current_app.camera_mgr)
+    resp = {'total': total,
+            'start': req['start'],
+            'list': []}
+    if limit > 0 and start < total:
+        index = 0
+        for camera in current_app.camera_mgr.iter_camera():
+            if index >= start:
+                if index < start+limit:
+                    resp['list'].append(camera)
+                else:
+                    break
 
 
 @get_view(route_name='camera')
