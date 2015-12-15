@@ -7,8 +7,9 @@ README = open(os.path.join(here, 'README.md')).read()
 CHANGES = open(os.path.join(here, 'CHANGES.md')).read()
 
 requires = [
-    'gevent>=1.0',
-    'ws4py==0.3.4',
+    'gevent>=1.1rc2',
+    #'ws4py==0.3.4',
+    'ws4py==0.3.5',
     'PyYaml==3.11',
     'flask==0.10.1',
     'pyramid==1.5.7'
@@ -48,6 +49,7 @@ setup(name='IVR',
       zip_safe=False,
       install_requires=requires,
       tests_require=requires,
+      dependency_links=['https://github.com/hyt-hz/WebSocket-for-Python/archive/master.zip#egg=ws4py-0.3.5'],
       test_suite="IVR.tests",
       #     data_files=[
       #         ('/etc/', ['storlever.ini']),
