@@ -11,7 +11,7 @@ requires = [
     #'ws4py==0.3.4',
     'ws4py==0.3.5',
     'PyYaml==3.11',
-    'pyramid==1.5.7'
+    'pyramid==1.5.7',
     'pyramid_debugtoolbar>=2.2.2',
     'pyramid_chameleon>=0.3',
 ]
