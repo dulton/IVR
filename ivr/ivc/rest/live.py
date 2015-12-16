@@ -1,13 +1,13 @@
-from ivr.common.rest import get_view, post_view, put_view, delete_view
-from ivr.common.rest import get_params_from_request
+from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
+from ivr.ivc.rest.common import get_params_from_request
 from ivr.common.schema import Schema, Optional, Default, BoolVal
 
 
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('live_stream', '/cameras/<camera_id>/live/<format>')
-    config.add_route('live_stream_keepalive', '/cameras/<camera_id>/live/<format>/keepalive')
+    config.add_route('live_stream', '/cameras/{camera_id}/live/{format}')
+    config.add_route('live_stream_keepalive', '/cameras/{camera_id}/live/{format}/keepalive')
 
 
 get_stream_schema = Schema({Optional('keepalive_required'): Default(BoolVal(), default=False),

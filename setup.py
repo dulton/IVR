@@ -11,8 +11,9 @@ requires = [
     #'ws4py==0.3.4',
     'ws4py==0.3.5',
     'PyYaml==3.11',
-    'flask==0.10.1',
     'pyramid==1.5.7'
+    'pyramid_debugtoolbar>=2.2.2',
+    'pyramid_chameleon>=0.3',
 ]
 
 if sys.version_info < (2, 7):

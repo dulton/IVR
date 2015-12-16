@@ -1,5 +1,5 @@
-from ivr.common.rest import get_view, post_view, put_view, delete_view
-from ivr.common.rest import get_params_from_request
+from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
+from ivr.ivc.rest.common import get_params_from_request
 from ivr.common.schema import Schema, Optional, Default, IntVal
 
 
@@ -31,6 +31,7 @@ def get_camera_list(request):
                     resp['list'].append(camera)
                 else:
                     break
+    return resp
 
 
 @get_view(route_name='camera')
