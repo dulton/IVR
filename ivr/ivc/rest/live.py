@@ -19,7 +19,8 @@ get_stream_schema = Schema({'format': EnumVal(['hls', 'rtmp']),
 @post_view(route_name='live_stream')
 def request_live_stream(request):
     req = get_params_from_request(request, get_stream_schema)
-    url, session_id = request.registry.stream_mgr.request_live_stream(request.matchdict['camera_id'],
+    url, session_id = request.registry.stream_mgr.request_live_stream(request.matchdict['vendor'],
+                                                                      request.matchdict['camera_id'],
                                                                       stream_format=req['format'],
                                                                       stream_quality=req['quality'],
                                                                       keepalive_required=req['keepalive_required'],
@@ -34,7 +35,8 @@ delete_stream_schema = Schema({Optional('session_id'): Use(str),
 @delete_view(route_name='live_stream')
 def delete_live_stream(request):
     req = get_params_from_request(request, delete_stream_schema)
-    request.registry.stream_mgr.delete_live_stream(request.matchdict['camera_id'],
+    request.registry.stream_mgr.delete_live_stream(request.matchdict['vendor'],
+                                                   request.matchdict['camera_id'],
                                                    session_id=req['session_id'],
                                                    force=req['force'])
 
@@ -45,7 +47,8 @@ keepalive_schema = Schema({'session_id': Use(str)})
 @post_view(route_name='live_stream_keepalive')
 def keepalive_live_stream(request):
     req = get_params_from_request(request, keepalive_schema)
-    request.registry.stream_mgr.keepalive_live_stream(request.matchdict['camera_id'],
+    request.registry.stream_mgr.keepalive_live_stream(request.matchdict['vendor'],
+                                                      request.matchdict['camera_id'],
                                                       req['session_id'])
 
 

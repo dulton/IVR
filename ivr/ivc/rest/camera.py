@@ -25,7 +25,7 @@ def get_camera_list(request):
             'list': []}
     if limit > 0 and start < total:
         index = 0
-        for camera in request.registry.camera_mgr.iter_camera():
+        for camera in request.registry.camera_mgr.iter_camera(request.matchdict['vendor']):
             if index >= start:
                 if index < start+limit:
                     resp['list'].append(camera)
@@ -36,6 +36,6 @@ def get_camera_list(request):
 
 @get_view(route_name='camera')
 def get_camera(request):
-    return request.registry.camera_mgr.get_camera(request.matchdict['camera_id'])
+    return request.registry.camera_mgr.get_camera(request.matchdict['vendor'], request.matchdict['camera_id'])
 
 
