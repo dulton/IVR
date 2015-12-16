@@ -88,6 +88,19 @@ class Or(And):
                           [self._error] + x.errors)
 
 
+class EnumVal(object):
+
+    @handle_default
+    def __init__(self, list, error=None):
+        self._list = list
+        self._error = error
+
+    def validate(self, data):
+        if data not in self._list:
+            raise SchemaError('%s not in %s' % (data, self._list), self._error)
+        return data
+
+
 class IntVal(object):
     """
     schema to Validate integer

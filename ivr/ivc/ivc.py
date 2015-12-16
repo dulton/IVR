@@ -162,7 +162,7 @@ class StreamManager(object):
             raise IVRError('No live stream found for camera {0}'.format(camera_id))
         return self._streams[camera_id]
 
-    def request_live_stream(self, camera_id, stream_format='hls', keepalive_required=False, create=True):
+    def request_live_stream(self, camera_id, stream_format='hls', stream_quality='low', keepalive_required=False, create=True):
         for _ in xrange(5):
             # if we are already setting up the stream, retry several times,
             # and return to user only when it is finally ready
@@ -187,7 +187,7 @@ class StreamManager(object):
                 return stream['url']
         raise IVRError("Failed to get {0} stream for camera {1}".format(stream_format, camera_id))
 
-    def delete_live_stream(self, camera_id, stream_format='hls', force=False):
+    def delete_live_stream(self, camera_id, session_id=None, force=False):
         if camera_id not in self._streams:
             raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
         if stream_format not in self._streams[camera_id]:
@@ -202,7 +202,7 @@ class StreamManager(object):
             log.info('Wait for last user leave before tearing down camera {0} stream {1}'.format(camera_id, stream))
             stream['keepalive_required'] = True
 
-    def keepalive_live_stream(self, camera_id, stream_format='hls'):
+    def keepalive_live_stream(self, camera_id, session_id):
         if camera_id not in self._streams:
             raise IVRError("No stream {0} from camera {1}".format(stream_format, camera_id))
         if stream_format not in self._streams[camera_id]:

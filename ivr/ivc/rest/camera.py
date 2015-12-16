@@ -6,8 +6,8 @@ from ivr.common.schema import Schema, Optional, Default, IntVal
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('camera_list', '/cameras')
-    config.add_route('camera', '/cameras/{camera_id}')
+    config.add_route('camera_list', '/{vendor}/cameras')
+    config.add_route('camera', '/{vendor}/cameras/{camera_id}')
 
 
 get_cameras_list_schema = Schema({Optional('start'): Default(IntVal(min=0), default=0),
