@@ -18,4 +18,4 @@ sender = sender = create_sender(NATIVE_FFMPEG_SENDER_TYPE_NAME,
                                 log_file='sender.log',
                                 dest_format='flv',
                                 stream_name='rs1',
-                                extra_options={'rtsptransport': 'tcp', 'vcodec': 'copy'})
+                                extra_options={'vcodec': 'copy'})

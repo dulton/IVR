@@ -9,6 +9,9 @@ from ivr.common.ws import WSClientTransport
 from ivr.common.schema import Schema, Use
 from ivr.ivt.ivt import IVT
 
+from streamswitch.port_mngr import SubProcessPort
+from streamswitch.ports.rtsp_port import RTSP_PORT_PROGRAM_NAME
+
 
 config_schema = Schema({
     'ivc': Use(str),
@@ -51,6 +54,12 @@ def main():
     log = logging.getLogger(__name__)
 
     ivt = IVT(config['id'], config['cameras'])
+
+    # start port
+    port = SubProcessPort(port_name=config['id'], port_type=RTSP_PORT_PROGRAM_NAME)
+    port.start()
+
+    # connect to IVC
     WSClientTransport.APP_FACTORY = ivt.ivt_session_factory
     url = config['ivc']+'?'+urllib.urlencode({'id': config['id']})
     while True:
