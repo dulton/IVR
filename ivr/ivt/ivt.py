@@ -4,48 +4,29 @@ import gevent
 
 from ivr.common.rpc import RPCSession
 from ivr.common.exception import IVRError
+from ivr.ivt.camera import camera_factory
 
 import logging
 log = logging.getLogger(__name__)
 
 
-class Camera(object):
-    def __init__(self, camera_id, detail):
-        self._id = camera_id
-        self._detail = detail
-        self._detail['id'] = camera_id
-        self._streams = detail['streams']
-        self._rtp = self._streams[0]['rtp']
-
-    @property
-    def id(self):
-        return self._id
-
-    @property
-    def info(self):
-        return self._detail
-
-    def rtmp_publish(self, rtmp_url):
-        if rtmp_url in self._streams:
-            return
-        # TODO create ffmpeg to pull rtp stream and publish it to rtmp_url
-        log.info('try to publish rtmp stream from rtp {0} of camera {1}'.format(self._rtp, self._id))
-        self._streams = {rtmp_url: {}}
-
-    def rtmp_stop_publish(self, rtmp_url):
-        stream = self._streams.pop(rtmp_url, None)
-        if stream:
-            log.info('Stop publishing to RTMP from rtp {0} of camera {1}'.format(self._rtp, self._id))
-            # TODO stop ffmpeg
-
-
 class IVT(object):
     def __init__(self, ivt_id, cameras):
+        self.id = ivt_id
         self._session = None
         self._cameras = {}
-        for camera_id, camera in cameras.iteritems():
-            self._cameras[camera_id] = Camera(camera_id, camera)
-        self.id = ivt_id
+        for camera in cameras:
+            tenant = camera.pop('tenant')
+            camera_id = camera.pop('id')
+            c = camera_factory(camera_type=camera.pop('type'),
+                               tenant=tenant,
+                               camera_id=camera_id,
+                               streams=camera.pop('streams'),
+                               **camera)
+            if tenant not in self._cameras:
+                self._cameras[tenant] = {camera_id: c}
+            else:
+                self._cameras[tenant][camera_id] = c
 
     def ivt_session_factory(self, transport):
         self._session = IVTSession(self, transport)

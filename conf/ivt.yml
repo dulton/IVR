@@ -1,0 +1,13 @@
+ivc: ws://127.0.0.1:5000/ivc
+id: ivt1
+camera:
+  - type: rtsp
+    tenant: jiguang
+    id: c1
+    streams:
+      - type: rtsp
+        quality: high
+        url: rtsp://192.168.2.100:554/user=admin&password=123456&id=1&type=0
+      - type: rtsp
+        quality: low
+        url: rtsp://192.168.2.100:554/user=admin&password=123456&id=1&type=1
