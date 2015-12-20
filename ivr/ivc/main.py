@@ -30,11 +30,11 @@ def main():
             'debug': True,
         }
 
-        camera_mgr = CameraManager()
-        stream_mgr = StreamManager(camera_mgr,
+        camera_mngr = CameraManager()
+        stream_mngr = StreamManager(camera_mngr,
                                    conf['rtmp_publish_url_prefix'],
                                    stream_ttl=conf['stream_ttl'])
-        ws_server = WSServer(conf['ws_listen'], camera_mgr.ivt_online)
+        ws_server = WSServer(conf['ws_listen'], camera_mngr.ivt_online)
 
         from pyramid.config import Configurator
         from pyramid.renderers import JSON
@@ -42,8 +42,8 @@ def main():
         config = Configurator()
         config.add_renderer(None, JSON(indent=4, check_circular=True, cls=CustomJSONEncoder))
         config.include('ivr.ivc.rest', route_prefix='api/ivc/v1')
-        config.registry.camera_mgr = camera_mgr
-        config.registry.stream_mgr = stream_mgr
+        config.registry.camera_mngr = camera_mngr
+        config.registry.stream_mngr = stream_mngr
         if conf.get('debug'):
             config.add_settings({'debugtoolbar.hosts': ['0.0.0.0/0', '::1'],
                                  'debugtoolbar.enabled': True,

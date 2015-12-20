@@ -34,7 +34,7 @@ class Stream(object):
         self.camera = camera
         self.url = url
         self.quality = quality
-        self.stream_name = '_'.join(self.camera.tenant, self.camera.id, self.type, self.quality)
+        self.stream_name = '_'.join(self.camera.project, self.camera.id, self.type, self.quality)
         self.stsw_source = None
         self.stsw_senders = {}
         gevent.spawn(self._destroy_stsw_source_on_idle)

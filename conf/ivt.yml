@@ -2,7 +2,7 @@ ivc: ws://127.0.0.1:5000/ivc
 id: ivt1
 camera:
   - type: rtsp
-    tenant: jiguang
+    project: jiguang
     id: c1
     streams:
       - type: rtsp

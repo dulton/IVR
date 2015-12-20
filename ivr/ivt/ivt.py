@@ -16,17 +16,17 @@ class IVT(object):
         self._session = None
         self._cameras = {}
         for camera in cameras:
-            tenant = camera.pop('tenant')
+            project = camera.pop('project')
             camera_id = camera.pop('id')
             c = camera_factory(camera_type=camera.pop('type'),
-                               tenant=tenant,
+                               project=project,
                                camera_id=camera_id,
                                streams=camera.pop('streams'),
                                **camera)
-            if tenant not in self._cameras:
-                self._cameras[tenant] = {camera_id: c}
+            if project not in self._cameras:
+                self._cameras[project] = {camera_id: c}
             else:
-                self._cameras[tenant][camera_id] = c
+                self._cameras[project][camera_id] = c
 
     def ivt_session_factory(self, transport):
         self._session = IVTSession(self, transport)

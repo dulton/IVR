@@ -6,8 +6,8 @@ from ivr.common.schema import Schema, Optional, Default, IntVal
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('camera_list', '/{tenant}/cameras')
-    config.add_route('camera', '/{tenant}/cameras/{camera_id}')
+    config.add_route('camera_list', '/{project}/cameras')
+    config.add_route('camera', '/{project}/cameras/{camera_id}')
 
 
 get_cameras_list_schema = Schema({Optional('start'): Default(IntVal(min=0), default=0),
@@ -19,13 +19,13 @@ def get_camera_list(request):
     req = get_params_from_request(request, get_cameras_list_schema)
     start = req['start']
     limit = req['limit']
-    total = len(request.registry.camera_mgr)
+    total = len(request.registry.camera_mngr)
     resp = {'total': total,
             'start': req['start'],
             'list': []}
     if limit > 0 and start < total:
         index = 0
-        for camera in request.registry.camera_mgr.iter_camera(request.matchdict['tenant']):
+        for camera in request.registry.camera_mngr.iter_camera(request.matchdict['project']):
             if index >= start:
                 if index < start+limit:
                     resp['list'].append(camera)
@@ -36,6 +36,6 @@ def get_camera_list(request):
 
 @get_view(route_name='camera')
 def get_camera(request):
-    return request.registry.camera_mgr.get_camera(request.matchdict['tenant'], request.matchdict['camera_id'])
+    return request.registry.camera_mngr.get_camera(request.matchdict['project'], request.matchdict['camera_id'])
 
 

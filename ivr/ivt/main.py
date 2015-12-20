@@ -25,7 +25,7 @@ def main():
     config = {
         'ivc': 'ws://127.0.0.1:5000/ivc',
         'id': 'ivt1',
-        'cameras': {'c01': {'tenant': 'a',
+        'cameras': {'c01': {'project': 'a',
                             'location': 'Hangzhou',
                             'desc': 'camera c01',
                             'ip': 'x.x.x.x',
@@ -36,7 +36,7 @@ def main():
                                  'bitrate': 1024,
                                  'fps': 25,
                                  'rtp': 'rtp://x.x.x.x/abc',}]},
-                    'c02': {'tenant': 'b',
+                    'c02': {'project': 'b',
                             'location': 'Hangzhou',
                             'desc': 'camera c02',
                             'ip': 'x.x.x.x',
