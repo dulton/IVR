@@ -46,26 +46,26 @@ class CameraDAO(object):
             ),
         ]
 
-    def get_camera_count(self, project):
+    def get_camera_count(self, project_id):
         count = 0
         for c in self._cameras:
-            if c['project_id'] == project:
+            if c.project_id == project_id:
                 count += 1
         return count
 
-    def get_camera_list(self, project, start=0, limit=0):
+    def get_camera_list(self, project_id, start=0, limit=0):
         result = []
         if limit == 0:
             return result
         for c in self._cameras:
-            if c.project_id == project:
+            if c.project_id == project_id:
                 if len(result) < limit:
                     result.append(c)
                     if len(result) + 1 == limit:
                         break
         return result
 
-    def get_camera(self, project, uuid):
+    def get_camera(self, project_id, uuid):
         for c in self._cameras:
-            if c.uuid == uuid and c.project_id == project:
+            if c.uuid == uuid and c.project_id == project_id:
                 return c

@@ -5,15 +5,22 @@ gevent.monkey.patch_all()
 
 from gevent.wsgi import WSGIServer
 
+import sys
 from ivr.common.logger import default_config as default_log_config
 from ivr.common.ws import WSServer
-from ivr.common.schema import Schema, Use
-from ivr.common.exception import IVRError
-from ivc import CameraManager, StreamManager
+from ivr.common.schema import Schema, Use, IntVal, Default, Optional, BoolVal
+from ivr.common.confparser import parse as parse_conf
+from ivr.ivc.camera import CameraManager
+from ivr.ivc.session import UserSessionManager
+from ivr.ivc.stream import StreamManager
 
-conf_schema = Schema({
+config_schema = Schema({
     'rest_listen': Use(str),
     'ws_listen': Use(str),
+    'rtmp_publish_url_prefix': Use(str),
+    'stream_ttl': IntVal(min=10, max=1800),
+    'user_session_ttl': IntVal(min=10, max=1800),
+    Default('debug'): Optional(BoolVal(), default=False),
 })
 
 
@@ -23,20 +30,35 @@ def main():
     log = logging.getLogger(__name__)
 
     try:
-        conf = {
-            'rest_listen': '0.0.0.0:5001',
-            'ws_listen': '0.0.0.0:5000',
-            'rtmp_publish_url_prefix': 'rtmp://121.41.72.231/live/',
-            'stream_ttl': 20,
-            'debug': True,
-        }
+        if (sys.argv) == 2:
+            config = parse_conf(sys.argv[1])
+        else:
+            config = parse_conf('ivc.yml')
+        config = config_schema.validate(config)
 
-        camera_mngr = CameraManager()
-        stream_mngr = StreamManager(camera_mngr,
-                                   conf['rtmp_publish_url_prefix'],
-                                   stream_ttl=conf['stream_ttl'])
-        ws_server = WSServer(conf['ws_listen'], camera_mngr.ivt_online)
+        # prepare data backend
+        if not config.get('mysql'):
+            from ivr.ivc.backend.dummy_mem import CameraDAO, UserSessionDAO, StreamDAO
+            camera_dao = CameraDAO()
+            stream_dao = StreamDAO()
+            user_session_dao = UserSessionDAO()
+        else:
+            pass
 
+        camera_mngr = CameraManager(camera_dao)
+        stream_mngr = StreamManager(stream_dao,
+                                    camera_mngr,
+                                    config['rtmp_publish_url_prefix'],
+                                    stream_ttl=config['stream_ttl'])
+        user_session_mngr = UserSessionManager(user_session_dao,
+                                               stream_mngr,
+                                               config['user_session_ttl'])
+
+
+        # prepare websocket server
+        ws_server = WSServer(config['ws_listen'], camera_mngr.ivt_online)
+
+        # prepare REST API
         from pyramid.config import Configurator
         from pyramid.renderers import JSON
         from ivr.common.rest import CustomJSONEncoder
@@ -45,14 +67,15 @@ def main():
         config.include('ivr.ivc.rest', route_prefix='api/ivc/v1')
         config.registry.camera_mngr = camera_mngr
         config.registry.stream_mngr = stream_mngr
-        if conf.get('debug'):
+        if config.get('debug'):
             config.add_settings({'debugtoolbar.hosts': ['0.0.0.0/0', '::1'],
                                  'debugtoolbar.enabled': True,
                                  'pyramid.debug_authorization': False,})
             config.include('pyramid_debugtoolbar')
             config.include('pyramid_chameleon')
-        rest_server = WSGIServer(conf['rest_listen'], config.make_wsgi_app())
+        rest_server = WSGIServer(config['rest_listen'], config.make_wsgi_app())
 
+        # start server and wait
         gevent.joinall(map(gevent.spawn, (ws_server.server_forever, rest_server.serve_forever)))
         log.info("Quit")
     except Exception:
