@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 import gevent
 
 from ivr.common.exception import IVRError

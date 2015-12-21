@@ -1,4 +1,4 @@
-from ivr.ivt.camera import Camera
-
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 
 

@@ -1,13 +1,5 @@
-"""
-storlever.common
-~~~~~~~~~~~~~~~~
-
-This module implements some common API for REST.
-
-:copyright: (c) 2014 by OpenSight (www.opensight.cn).
-:license: AGPLv3, see LICENSE for more details.
-
-"""
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 import sys
 import traceback
 import copy

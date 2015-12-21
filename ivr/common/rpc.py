@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 import json
 
 from gevent.queue import Queue

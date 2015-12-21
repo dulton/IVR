@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-
+from __future__ import unicode_literals, division
 
 class IVRError(Exception):
     def __init__(self, msg, http_status_code=505):

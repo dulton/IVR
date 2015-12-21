@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 from ivr.common.exception import IVRError
 from ivr.ivt.stream import stream_factory
 

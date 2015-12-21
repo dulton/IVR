@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
 from ivr.ivc.rest.common import get_params_from_request
 from ivr.common.schema import Schema, Optional, Default, BoolVal, EnumVal, Use

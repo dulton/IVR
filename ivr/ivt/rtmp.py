@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
 from streamswitch.stream_mngr import create_stream
 from streamswitch.sources.rtsp_source import RTSP_SOURCE_TYPE_NAME
 from streamswitch.port_mngr import SubProcessPort

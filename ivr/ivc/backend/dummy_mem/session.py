@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+from __future__ import unicode_literals, division
+
 class UserSession(object):
     def __init__(self, project_id, camera_uuid, session_id, stream_id):
         self.project_id = project_id
