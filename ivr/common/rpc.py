@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
 import json
-
 from gevent.queue import Queue
-
+from gevent.lock import RLock
 from ivr.common.exception import IVRError
 
 import logging
@@ -81,6 +80,7 @@ class RPCSession(object):
     def __init__(self, transport=None, encoder=None):
         self._clientSeqNbr = 0
         self._serverSeqNbr = 0
+        self._request_mutex = RLock()  # prevent concurrent request
         self._clientQ = Queue(10)
         self._encoder = encoder or self.DEFAULT_ENCODER
         self._transport = transport
@@ -133,23 +133,24 @@ class RPCSession(object):
         if not self.is_online:
             raise NotOnline("Not on line")
         try:
-            self._clientSeqNbr += 1
-            if params is None:
-                msg = {'req': method,
-                       'seq': self._clientSeqNbr}
-            else:
-                msg = {'req': method,
-                       'params': params,
-                       'seq': self._clientSeqNbr}
-            self._transport.send_packet(self._encoder.marshal(msg))
-            msg = self._clientQ.get(timeout=10)
-            if msg['seq'] != self._clientSeqNbr:
-                raise InvalidRPCMessage("Invalid sequence number {0} instead of {1} "
-                                        "in response message".format(self.msg['seq'], self._clientSeqNbr))
-            if 'err' in msg:
-                raise ErrorResponse(msg['err']['msg'])
-            else:
-                return msg.get('resp')
+            with self._request_mutex:
+                self._clientSeqNbr += 1
+                if params is None:
+                    msg = {'req': method,
+                           'seq': self._clientSeqNbr}
+                else:
+                    msg = {'req': method,
+                           'params': params,
+                           'seq': self._clientSeqNbr}
+                self._transport.send_packet(self._encoder.marshal(msg))
+                msg = self._clientQ.get(timeout=10)
+                if msg['seq'] != self._clientSeqNbr:
+                    raise InvalidRPCMessage("Invalid sequence number {0} instead of {1} "
+                                            "in response message".format(self.msg['seq'], self._clientSeqNbr))
+                if 'err' in msg:
+                    raise ErrorResponse(msg['err']['msg'])
+                else:
+                    return msg.get('resp')
         except ErrorResponse:
             raise
         except Exception:
