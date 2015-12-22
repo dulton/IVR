@@ -18,6 +18,8 @@ class Camera(object):
 
 
 class CameraDAO(object):
+    model_cls = Camera
+
     def __init__(self):
         self._cameras = [
             Camera(

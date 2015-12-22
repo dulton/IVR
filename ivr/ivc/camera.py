@@ -6,9 +6,27 @@ from ivr.common.exception import IVRError
 import logging
 log = logging.getLogger(__name__)
 
+
+class Camera(object):
+    def __init__(self, project_id, uuid, device_uuid, channel_index, name,
+                 flags, state, desc, long_desc, longitude, latitude, altitude):
+        self.project_id = project_id
+        self.uuid = uuid
+        self.device_uuid = device_uuid
+        self.channel_index = channel_index
+        self.flags = flags
+        self.state = state
+        self.name = name
+        self.desc = desc
+        self.long_desc = long_desc
+        self.longitude = longitude
+        self.latitude = latitude
+        self.altitude = altitude
+
+
 class CameraManager(object):
-    def __init__(self, cameraDao):
-        self._cameraDao = cameraDao
+    def __init__(self, camera_dao):
+        self._camera_dao = camera_dao
 
     def ivt_online(self, transport, params):
         if not params.get('id'):
@@ -33,13 +51,13 @@ class CameraManager(object):
                 return ivt
 
     def get_camera(self, project, camera_id):
-        return self._cameraDao.get_camera(project, camera_id)
+        return self._camera_dao.get_camera(project, camera_id)
 
     def get_camera_list(self, project, start, limit):
-        return self._cameraDao.get_camera_list(project, start, limit)
+        return self._camera_dao.get_camera_list(project, start, limit)
 
     def camera_cnt(self, project):
-        return self._cameraDao.get_camera_count(project)
+        return self._camera_dao.get_camera_count(project)
 
     def rtmp_publish_stream(self, project, camera_id, publish_url):
         ivt = self._find_ivt(project, camera_id)
