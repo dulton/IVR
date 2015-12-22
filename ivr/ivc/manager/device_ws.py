@@ -3,9 +3,8 @@ from __future__ import unicode_literals, division
 import gevent
 import time
 from ivr.common.rpc import RPCSession
-from manager import DeviceManager
+from device import DeviceManager
 from ivr.common.exception import IVRError
-
 
 import logging
 log = logging.getLogger(__name__)

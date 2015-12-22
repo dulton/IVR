@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
+
 import gevent.monkey
+
 gevent.monkey.patch_all()
 
 from gevent.wsgi import WSGIServer
@@ -10,9 +12,9 @@ from ivr.common.logger import default_config as default_log_config
 from ivr.common.ws import WSServer
 from ivr.common.schema import Schema, Use, IntVal, Default, Optional, BoolVal
 from ivr.common.confparser import parse as parse_conf
-from ivr.ivc.camera import CameraManager
-from ivr.ivc.session import UserSessionManager
-from ivr.ivc.stream import StreamManager
+from ivr.ivc.manager.camera import CameraManager
+from ivr.ivc.manager.session import UserSessionManager
+from ivr.ivc.manager.stream import StreamManager
 
 config_schema = Schema({
     'rest_listen': Use(str),
