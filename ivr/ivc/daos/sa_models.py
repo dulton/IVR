@@ -10,17 +10,17 @@ based on the SQLAlchemy's ORM
 
 """
 from __future__ import unicode_literals, division
-from sqlalchemy import Column, ForeignKey
+from sqlalchemy import Column, ForeignKey, text, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Float, Text, \
-    BigInteger, CHAR, Boolean
+    BigInteger, CHAR, Boolean, TIMESTAMP
 from sqlalchemy.ext.declarative import declarative_base
 from ...common.utils import STRING, encode_json
 import json
 
 
-
 Base = declarative_base()
+
 
 class SACamera(Base):
     """ The SQLAlchemy declarative model class for a camera object. """
@@ -30,7 +30,8 @@ class SACamera(Base):
     uuid = Column(CHAR(length=36, convert_unicode=True),
                   nullable=False, index=True, unique=True)
     device_uuid = Column(CHAR(length=36, convert_unicode=True),
-                         nullable=False, server_default="", ForeignKey('device.uuid'))
+                         nullable=False, server_default="",
+                         ForeignKey('device.uuid', onupdate="CASCADE", ondelete="CASCADE"))
     channel_index = Column(Integer, nullable=False, server_default="0")
     name = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
@@ -38,17 +39,23 @@ class SACamera(Base):
     longitude = Column(Float, server_default="0.0", nullable=False)
     latitude = Column(Float, server_default="0.0", nullable=False)
     altitude = Column(Float, server_default="0.0", nullable=False)
-    project_name = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+    project_name = Column(String(length=64, convert_unicode=True),
+                          nullable=False, server_default="",
+                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"))
     flags = Column(Integer, nullable=False, server_default="0")
     is_online = Column(Boolean, nullable=False, server_default="0")
+    ctime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
+                   onupdate="CURRENT_TIMESTAMP")
+
 
     device = relationship("SADevice", back_populates="cameras")
+    project = relationship("SAProject", back_populates="cameras")
 
     def __repr__(self):
         return "SA Camera Object(uuid:%s, name:%s)" % (
             self.uuid, self.name
         )
-
 
 
 class SADevice(Base):
@@ -68,17 +75,89 @@ class SADevice(Base):
     longitude = Column(Float, server_default="0.0", nullable=False)
     latitude = Column(Float, server_default="0.0", nullable=False)
     altitude = Column(Float, server_default="0.0", nullable=False)
-    project_name = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+    project_name = Column(String(length=64, convert_unicode=True),
+                          nullable=False, server_default="",
+                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"))
     flags = Column(Integer, nullable=False, server_default="0")
     is_online = Column(Boolean, nullable=False, server_default="0")
     login_code = Column(String(length=64, convert_unicode=True),
-                      nullable=False, index=True, unique=True)
+                        nullable=False, index=True, unique=True)
     login_passwd = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+    ctime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
+                   onupdate="CURRENT_TIMESTAMP")
+    ltime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
     cameras = relationship("SACamera", order_by=SACamera._id, back_populates="device")
+    project = relationship("SAProject", back_populates="devices")
+
 
     def __repr__(self):
         return "SA Device Object(uuid:%s, name:%s)" % (
             self.uuid, self.name
         )
+
+project_user_relation = Table('project_user_relation', Base.metadata,
+                              Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True),
+                              Column('user_username', String(length=64, convert_unicode=True),
+                                     nullable=False,
+                                     ForeignKey('user.username', onupdate="CASCADE", ondelete="CASCADE")),
+                              Column('project_name', String(length=64, convert_unicode=True),
+                                     nullable=False,
+                                     ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"))
+                              )
+
+
+class SAProject(Base):
+    """ The SQLAlchemy declarative model class for a camera object. """
+    __tablename__ = 'project'
+
+    _id = Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    name = Column(String(length=64, convert_unicode=True),
+                  nullable=False, index=True, unique=True)
+    title = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
+    desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
+    long_desc = Column(Text(convert_unicode=True), nullable=False, server_default="")
+    max_media_sessions = Column(Integer, nullable=False, server_default="0")
+
+    cameras = relationship("SACamera", order_by=SACamera._id, back_populates="project")
+    devices = relationship("SADevice", order_by=SADevice._id, back_populates="project")
+    users = relationship('SAUser', secondary=project_user_relation,
+                         back_populates="projects")
+
+    def __repr__(self):
+        return "SA Project Object(name:%s)" % (
+            self.name
+        )
+
+
+class SAUser(Base):
+    """ The SQLAlchemy declarative model class for a camera object. """
+    __tablename__ = 'user'
+
+    _id = Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    username = Column(String(length=64, convert_unicode=True),
+                      nullable=False, index=True, unique=True)
+    password = Column(String(length=64, convert_unicode=True),
+                      nullable=False, server_default="")
+    title = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
+    desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
+    long_desc = Column(Text(convert_unicode=True), nullable=False, server_default="")
+
+    cellphone = Column(String(length=32, convert_unicode=True), nullable=False, server_default="")
+    email = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+
+    ctime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+    utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
+                   onupdate="CURRENT_TIMESTAMP")
+    ltime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
+
+    projects = relationship('SAProject', secondary=project_user_relation,
+                            back_populates="users")
+
+    def __repr__(self):
+        return "SA User Object(name:%s)" % (
+            self.username
+        )
+
 

@@ -5,7 +5,6 @@ ivr.ivc.daos.sa_dao_context_mngr
 This module implements the DAO context manager of SQLAlchemy ORM
 
 :copyright: (c) 2015 by OpenSight (www.opensight.cn).
-:license: AGPLv3, see LICENSE for more details.
 
 """
 from __future__ import unicode_literals, division
