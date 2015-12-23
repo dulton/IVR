@@ -11,10 +11,10 @@ class Device(object):
     STATE_OFFLINE = 0
     STATE_ONLINE = 1
 
-    def __init__(self, project_id, uuid, name, type, firmware_model, hardware_model,
+    def __init__(self, project_name, uuid, name, type, firmware_model, hardware_model,
                  flags, state, desc, long_desc, media_channel_num,
                  dev_code, password, longitude, latitude, altitude):
-        self.project_id = project_id
+        self.project_name = project_name
         self.uuid = uuid
         self.name = name
         self.type = type
@@ -36,14 +36,14 @@ class DeviceManager(object):
     def __init__(self, device_dao):
         self._device_dao = device_dao
 
-    def get_device(self, project_id, device_id):
-        return self._device_dao.get_device(project_id, device_id)
+    def get_device(self, project_name, device_id):
+        return self._device_dao.get_device(project_name, device_id)
 
-    def get_device_list(self, project_id, start, limit):
-        return self._device_dao.get_device_list(project_id, start, limit)
+    def get_device_list(self, project_name, start, limit):
+        return self._device_dao.get_device_list(project_name, start, limit)
 
-    def delete_device(self, project_id, device_id):
-        return self._device_dao.delete_device(project_id, device_id)
+    def delete_device(self, project_name, device_id):
+        return self._device_dao.delete_device(project_name, device_id)
 
     def update_device(self, device):
         return self._device_dao.update_device(device)

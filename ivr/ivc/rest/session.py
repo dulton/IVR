@@ -8,8 +8,8 @@ from ivr.common.schema import Schema, Optional, Default, BoolVal, EnumVal, Use
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('user_session_list', '/{project}/cameras/{camera_id}/session')
-    config.add_route('user_session', '/{project}/cameras/{camera_id}/session/{sesion_id}')
+    config.add_route('user_session_list', '/{project_name}/cameras/{camera_id}/sessions')
+    config.add_route('user_session', '/{project_name}/cameras/{camera_id}/sessions/{sesion_id}')
 
 
 @get_view(route_name='user_session_list')
@@ -18,23 +18,24 @@ def get_user_session_list(request):
 
 
 get_stream_schema = Schema({'format': EnumVal(['hls', 'rtmp']),
-                            Optional('quality'): Default(EnumVal(['ld', 'sd', 'hd']), default='ld')})
+                            Optional('quality'): Default(EnumVal(['ld', 'sd', 'hd']), default='ld'),
+                            Optional('create'): Default(BoolVal(), default=True)})
 
 
 @post_view(route_name='user_session_list')
 def request_user_session(request):
     req = get_params_from_request(request, get_stream_schema)
-    url, session_id = request.registry.session_mngr.request_session(request.matchdict['project'],
+    url, session_id = request.registry.user_session_mngr.request_session(request.matchdict['project_name'],
                                                                   request.matchdict['camera_id'],
                                                                   stream_format=req['format'],
                                                                   stream_quality=req['quality'],
-                                                                  create=True)
+                                                                  create=req['create'])
     return {'url': url, 'session_id': session_id}
 
 
 @delete_view(route_name='user_session')
 def delete_user_session(request):
-    request.registry.session_mngr.stop_session(request.matchdict['project'],
+    request.registry.user_session_mngr.stop_session(request.matchdict['project_name'],
                                                    request.matchdict['camera_id'],
                                                    request.matchdict['session_id'])
 
@@ -42,7 +43,7 @@ def delete_user_session(request):
 
 @post_view(route_name='user_session')
 def keepalive_user_session(request):
-    request.registry.session_mngr.keepalive_session(request.matchdict['project'],
+    request.registry.user_session_mngr.keepalive_session(request.matchdict['project_name'],
                                                       request.matchdict['camera_id'],
                                                       request.matchdict['session_id'])
 

@@ -9,8 +9,8 @@ from ivr.common.schema import Schema, Optional, Default, IntVal
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('camera_list', '/{project}/cameras')
-    config.add_route('camera', '/{project}/cameras/{camera_id}')
+    config.add_route('camera_list', '/{project_name}/cameras')
+    config.add_route('camera', '/{project_name}/cameras/{camera_id}')
 
 
 get_cameras_list_schema = Schema({Optional('start'): Default(IntVal(min=0), default=0),
@@ -27,7 +27,7 @@ def get_camera_list(request):
             'start': req['start'],
             'list': []}
     if limit > 0 and start < total:
-        camera_list = request.registry.camera_mngr.get_camera_list(request.matchdict['project'],
+        camera_list = request.registry.camera_mngr.get_camera_list(request.matchdict['project_name'],
                                                                    req['start'],
                                                                    req['limit'])
         resp['list'] = camera_list
@@ -36,7 +36,7 @@ def get_camera_list(request):
 
 @get_view(route_name='camera')
 def get_camera(request):
-    return request.registry.camera_mngr.get_camera(request.matchdict['project'],
+    return request.registry.camera_mngr.get_camera(request.matchdict['project_name'],
                                                    request.matchdict['camera_id'])
 
 

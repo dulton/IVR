@@ -15,15 +15,15 @@ class StreamDAO(object):
     def __init__(self):
         self._streams = []
 
-    def get_stream_list(self, project_id, camera_id):
+    def get_stream_list(self, project_name, camera_id):
         pass
 
     def get_stream_by_id(self, stream_id):
         pass
 
-    def get_stream(self, project_id, camera_id, stream_format, stream_quality):
+    def get_stream(self, project_name, camera_id, stream_format, stream_quality):
         for s in self._streams:
-            if s.project_id == project_id \
+            if s.project_name == project_name \
                 and s.camera_id == camera_id \
                 and s.stream_format == stream_format \
                 and s.stream_quality == stream_quality:
