@@ -21,7 +21,6 @@ get_stream_schema = Schema({'format': EnumVal(['hls', 'rtmp']),
                             Optional('quality'): Default(EnumVal(['ld', 'sd', 'hd']), default='ld')})
 
 
-
 @post_view(route_name='user_session_list')
 def request_user_session(request):
     req = get_params_from_request(request, get_stream_schema)
@@ -35,7 +34,7 @@ def request_user_session(request):
 
 @delete_view(route_name='user_session')
 def delete_user_session(request):
-    request.registry.stream_mngr.delete_session(request.matchdict['project'],
+    request.registry.session_mngr.stop_session(request.matchdict['project'],
                                                    request.matchdict['camera_id'],
                                                    request.matchdict['session_id'])
 
@@ -43,7 +42,7 @@ def delete_user_session(request):
 
 @post_view(route_name='user_session')
 def keepalive_user_session(request):
-    request.registry.stream_mngr.keepalive_session(request.matchdict['project'],
+    request.registry.session_mngr.keepalive_session(request.matchdict['project'],
                                                       request.matchdict['camera_id'],
                                                       request.matchdict['session_id'])
 

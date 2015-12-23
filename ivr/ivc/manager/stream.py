@@ -21,15 +21,18 @@ class Stream(object):
 
 
 class StreamManager(object):
-    def __init__(self, dao, camera_mngr, rtmp_publish_url_prefix, stream_ttl=300):
+    def __init__(self, dao, camera_mngr, rtmp_publish_url_prefix, rtmp_url_prefix, hls_url_prefix, stream_ttl=300):
         self._dao = dao
         self._stream_id = 0
         self._camera_mngr = camera_mngr
         self._rtmp_publish_url_prefix = rtmp_publish_url_prefix
+        self._rtmp_url_prefix = rtmp_url_prefix
+        self._hls_url_prefix = hls_url_prefix
         self._stream_ttl = stream_ttl
         gevent.spawn(self._del_idle_stream)
 
     def request_stream(self, project_id, camera_id, stream_format='hls', stream_quality='low', auto_delete=True, create=True):
+        # TODO concurrent request for the same stream maybe harmful, need to handle this situation
         # find possible existing stream
         stream = self._dao.get_stream(project_id, camera_id, stream_format, stream_quality)
         if stream:
@@ -50,12 +53,16 @@ class StreamManager(object):
         url = self.calc_url(stream_format, stream_id)
         stream = self._dao.add_stream(project_id, stream_id, camera_id, stream_format, stream_quality, publish_to, url)
         self._camera_mngr.rtmp_publish_stream(self, project_id, camera_id, target_quality, publish_to)
+        return stream
 
     def stop_stream(self, stream_id):
         pass
 
     def calc_url(self, stream_format, stream_id):
-        pass
+        if stream_format == 'hls':
+            return os.path.join(self._hls_url_prefix, stream_id+".m3u8")
+        elif stream_format == 'rtmp':
+            return os.path.join(self._rtmp_url_prefix, stream_id)
 
     def on_camera_offline(self, camera_id):
         pass
