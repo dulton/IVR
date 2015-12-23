@@ -15,6 +15,8 @@ requires = [
     'pyramid_debugtoolbar>=2.2.2',
     'pyramid_chameleon>=0.3',
     'sqlalchemy>=1.0.8',
+    'pymysql>=0.6.7',
+    'alembic>=0.8.0',
 ]
 
 if sys.version_info < (2, 7):
