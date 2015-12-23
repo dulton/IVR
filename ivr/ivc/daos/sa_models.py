@@ -30,8 +30,8 @@ class SACamera(Base):
     uuid = Column(CHAR(length=36, convert_unicode=True),
                   nullable=False, index=True, unique=True)
     device_uuid = Column(CHAR(length=36, convert_unicode=True),
-                         nullable=False, server_default="",
-                         ForeignKey('device.uuid', onupdate="CASCADE", ondelete="CASCADE"))
+                         ForeignKey('device.uuid', onupdate="CASCADE", ondelete="CASCADE"),
+                         nullable=False, server_default="")
     channel_index = Column(Integer, nullable=False, server_default="0")
     name = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
@@ -40,14 +40,13 @@ class SACamera(Base):
     latitude = Column(Float, server_default="0.0", nullable=False)
     altitude = Column(Float, server_default="0.0", nullable=False)
     project_name = Column(String(length=64, convert_unicode=True),
-                          nullable=False, server_default="",
-                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"))
+                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
+                          nullable=False, server_default="")
     flags = Column(Integer, nullable=False, server_default="0")
     is_online = Column(Boolean, nullable=False, server_default="0")
     ctime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"),
                    onupdate="CURRENT_TIMESTAMP")
-
 
     device = relationship("SADevice", back_populates="cameras")
     project = relationship("SAProject", back_populates="cameras")
@@ -76,8 +75,8 @@ class SADevice(Base):
     latitude = Column(Float, server_default="0.0", nullable=False)
     altitude = Column(Float, server_default="0.0", nullable=False)
     project_name = Column(String(length=64, convert_unicode=True),
-                          nullable=False, server_default="",
-                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"))
+                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
+                          nullable=False, server_default="")
     flags = Column(Integer, nullable=False, server_default="0")
     is_online = Column(Boolean, nullable=False, server_default="0")
     login_code = Column(String(length=64, convert_unicode=True),
@@ -100,11 +99,11 @@ class SADevice(Base):
 project_user_relation = Table('project_user_relation', Base.metadata,
                               Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True),
                               Column('user_username', String(length=64, convert_unicode=True),
-                                     nullable=False,
-                                     ForeignKey('user.username', onupdate="CASCADE", ondelete="CASCADE")),
+                                      ForeignKey('user.username', onupdate="CASCADE", ondelete="CASCADE"),
+                                     nullable=False),
                               Column('project_name', String(length=64, convert_unicode=True),
-                                     nullable=False,
-                                     ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"))
+                                     ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
+                                     nullable=False)
                               )
 
 
