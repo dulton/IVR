@@ -11,9 +11,9 @@ log = logging.getLogger(__name__)
 
 
 class DeviceConn(RPCSession):
-    def __init__(self, conn_mngr, project_id, device_id, transport, device_ttl):
+    def __init__(self, conn_mngr, project_name, device_id, transport, device_ttl):
         self._conn_mngr = conn_mngr
-        self._project_id = project_id
+        self._project_name = project_name
         self._device_id = device_id
         self._transport = transport
         self._device_ttl = device_ttl
@@ -31,7 +31,7 @@ class DeviceConn(RPCSession):
         self._greenlet_chk_ttl.kill()
 
     def __str__(self):
-        return 'device "{0}" of project "{1}"'.format(self._id, self._project_id)
+        return 'device "{0}" of project "{1}"'.format(self._id, self._project_name)
 
     def _chk_ttl(self):
         while True:
@@ -67,14 +67,14 @@ class DeviceWSConnectionManager(DeviceManager):
         self._device_connections = {}
 
     def device_online(self, transport, params):
-        project_id = params.get('project')
+        project_name = params.get('project')
         device_id = params.get('uuid')
         if not device_id:
             raise Exception('No device ID is given')
-        device = self.get_device(project_id, device_id)
+        device = self.get_device(project_name, device_id)
         if not device:
-            raise IVRError('Device "{0}" of project "{1}" not recognized'.format(device_id, project_id))
-        device_conn = DeviceConn(project_id, device_id, transport)
+            raise IVRError('Device "{0}" of project "{1}" not recognized'.format(device_id, project_name))
+        device_conn = DeviceConn(project_name, device_id, transport)
         self._device_connections[device_id] = device_conn
         device.state = device.STATE_ONLINE
         self.update_device(device)
@@ -82,6 +82,6 @@ class DeviceWSConnectionManager(DeviceManager):
 
     def conn_closed_cbk(self, conn):
         self._device_connections.pop(conn.uuid, None)
-        device = self.get_device(conn.project_id, conn.device_id)
+        device = self.get_device(conn.project_name, conn.device_id)
         device.state = device.STATE_OFFLINE
         self.update_device(device)

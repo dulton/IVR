@@ -7,8 +7,8 @@ from ivr.common.schema import Schema, BoolVal, Default, Optional
 
 
 def includeme(config):
-    config.add_route('stream_list', '/{project}/cameras/{camera_id}/streams')
-    config.add_route('stream', '/{project}/cameras/{camera_id}/streams/{stream_id}')
+    config.add_route('stream_list', '/{project_name}/cameras/{camera_id}/streams')
+    config.add_route('stream', '/{project_name}/cameras/{camera_id}/streams/{stream_id}')
 
 
 @get_view(route_name='stream_list')

@@ -4,18 +4,20 @@ info:
   description: IVC的REST接口
   version: 1.0.0
 #host: 121.41.72.231:5001
-host: 192.168.0.253:15001
+#host: 192.168.0.253:15001
+host: 192.168.1.150:9999
 schemes:
   - http
 basePath: /api/ivc/v1
 produces:
   - application/json
 paths:
-  /cameras:
+  /{project_name}/cameras:
     get:
       summary: 获取摄像头列表
       tags: [Camera]
       parameters:
+        - $ref: '#/parameters/project_name'
         - name: start
           in: query
           description: 返回的摄像头的起始索引
@@ -50,47 +52,29 @@ paths:
                 description: 摄像头列表
                 items:
                   - $ref: '#/definitions/camera'
-  /cameras/{camera_id}:
+  /{project_name}/cameras/{camera_id}:
     get:
       summary: 获取摄像头信息
       tags: [Camera]
       parameters:
+        - $ref: '#/parameters/project_name'
         - $ref: '#/parameters/camera_id'
       responses:
         '200':
           description: 摄像头信息
           schema:
             $ref: '#/definitions/camera'
-  /cameras/{camera_id}/live:
-    get:
-      summary: 获取正在进行的直播流
-      description:
-        获取正在进行的直播流
-      tags: [Live stream]
-      parameters:
-        - $ref: '#/parameters/camera_id'
-      responses:
-        '200':
-          description: 媒体流URL
-          schema:
-            type: object
-            additionalProperties:
-              $ref: '#/definitions/live_stream'
-  /cameras/{camera_id}/live/{format}:
+  /{project_name}/cameras/{camera_id}/sessions:
     post:
-      summary: 请求直播媒体流URL
+      summary: 请求观看媒体流
       description:
-        客户端可通过该API获取指定摄像机的指定媒体流。
-      tags: [Live stream]
+        客户端可通过该API获取指定摄像机的媒体流。
+      tags: [User Session]
       parameters:
+        - $ref: '#/parameters/project_name'
         - $ref: '#/parameters/camera_id'
         - $ref: '#/parameters/format'
-        - name: keepalive_required
-          in: query
-          description: 是否需要keepalive，若希望该媒体流一直存在，置false，若希望该媒体流在没有人观看后自动关闭，置true。
-          required: false
-          type: boolean
-          default: false
+        - $ref: '#/parameters/quality'
         - name: create
           in: query
           description: 若该流不存在，是否创建。
@@ -104,96 +88,124 @@ paths:
             type: object
             required:
               - url
+              - session_id
             properties:
               url:
                 type: string
                 description: 媒体流URL
-    delete:
-      summary: 关闭直播媒体流
-      description: 客户端可通过该API关闭必定媒体流。
-      tags: [Live stream]
-      parameters:
-        - $ref: '#/parameters/camera_id'
-        - $ref: '#/parameters/format'
-        - name: force
-          in: query
-          description: 是否强行关闭该媒体流，当为true时，无论是否有人观看，均关闭该流；为false时，则等所有人结束观看后再关闭该媒体流。
-          type: boolean
-          required: false
-          default: false
-      responses:
-        '200':
-          description: 成功接收删除命令
-  /cameras/{camera_id}/live/{format}/keepalive:
+              session_id:
+                type: string
+                description: 会话ID
+  /{project_name}/cameras/{camera_id}/sessions/{session_id}:
     post:
-      summary: 直播客户端keepalive
+      summary: 媒体流会话keepalive
       description: 客户端通过定期keepalive表明自己仍在观看该直播媒体流
       parameters:
+        - $ref: '#/parameters/project_name'
         - $ref: '#/parameters/camera_id'
-        - $ref: '#/parameters/format'
-      tags: [Live stream]
+        - $ref: '#/parameters/session_id'
+      tags: [User Session]
       responses:
         '200':
           description: keepalive成功
+    delete:
+      summary: 结束观看媒体流
+      description: 客户端可通过该API告知结束观看媒体流。
+      tags: [User Session]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - $ref: '#/parameters/session_id'
+      responses:
+        '200':
+          description: 成功接收结束观看请求
 
 parameters:
+  project_name:
+    name: project_name
+    in: path
+    description: 项目名称
+    type: string
+    required: true
   camera_id:
     name: camera_id
     in: path
     description: 摄像头ID
     type: string
     required: true
+  session_id:
+    name: session_id
+    in: paths
+    description: 用户媒体流会话ID
+    type: string
+    required: true
   format:
     name: format
-    in: path
+    in: query
     description: 媒体流的格式
     required: true
     type: string
     enum: ['hls', 'rtmp']
+  quality:
+    name: quality
+    in: query
+    description: 媒体流质量
+    required: false
+    default: ld
+    type: string
+    enum: ['ld', 'sd', 'hd']
+
 
 definitions:
-  stream:
-    type: object
-    required:
-      - format
-    properties:
-      format:
-        type: string
-        description: 媒体流的格式
   camera:
     type: object
     required:
-      - id
+      - project_name
+      - uuid
+      - device_uuid
+      - channel_index
+      - flags
+      - is_online
+      - name
+      - desc
+      - longitude
+      - latitude
+      - altitude
     properties:
-      id:
+      project_name:
+        type: string
+        description: 摄像头所属项目名称
+      uuid:
         type: string
         description: 摄像头ID
-      location:
+      device_uuid:
         type: string
-        description: 摄像头位置信息
+        description: 该摄像头所属管理设备的UUID
+      channel_index:
+        type: integer
+        description: 该摄像头在管理设备中相应的通道号
+      flags:
+        type: integer
+        description: 各种标志位
+      is_online:
+        type: integer
+        description: 是否在线：0离线，1在线
+      name:
+        type: string
+        description: 名称
       desc:
         type: string
-        description: 摄像头的文字描述
-      streams:
-        type: array
-        items:
-          - $ref: '#/definitions/stream'
-  live_stream:
-    type: object
-    required:
-      - keepalive_required
-      - ready
-    properties:
-      last_keepalive:
-        type: integer
-        description: 最近一次keepalive的epoch
-      keepalive_required:
-        type: boolean
-        description: 直播流是否在一段时间没有keepalive后自动关闭
-      url:
+        description: 描述
+      long_desc:
         type: string
-        description: 直播流的URL
-      ready:
-        type: boolean
-        description: 直播流是否已经准备就绪
+        description: 长描述
+      longitude:
+        type: float
+        description: 经度
+      latitude:
+        type: float
+        description: 纬度
+      altitude:
+        type: float
+        description: 海拔
 

@@ -11,15 +11,18 @@ class Camera(object):
     stream_qualities = ('ld', 'sd', 'hd', 'fhd')
     STATE_OFFLINE = 0
     STATE_ONLINE = 1
+    FLAG_LD = 0b1
+    FLAG_SD = 0b10
+    FLAG_HD = 0b100
 
-    def __init__(self, project_id, uuid, device_uuid, channel_index, name,
-                 flags, state, desc, long_desc, longitude, latitude, altitude):
-        self.project_id = project_id
+    def __init__(self, project_name, uuid, device_uuid, channel_index, name,
+                 flags, is_online, desc, long_desc, longitude, latitude, altitude):
+        self.project_name = project_name
         self.uuid = uuid
         self.device_uuid = device_uuid
         self.channel_index = channel_index
         self.flags = flags
-        self.state = state
+        self.is_online = is_online
         self.name = name
         self.desc = desc
         self.long_desc = long_desc
@@ -42,7 +45,7 @@ class Camera(object):
         return target
 
     def __str__(self):
-        return 'camera "{0}" of project "{1}"'.format(self.uuid, self.project_id)
+        return 'camera "{0}" of project "{1}"'.format(self.uuid, self.project_name)
 
 
 class CameraManager(object):
@@ -58,16 +61,6 @@ class CameraManager(object):
 
     def camera_cnt(self, project):
         return self._camera_dao.get_camera_count(project)
-
-    def rtmp_publish_stream(self, project, camera_id, stream_quality, publish_url):
-        pass
-
-    def rtmp_stop_publish(self, project, camera_id, publish_url):
-        ivt = self._find_ivt(project, camera_id)
-        if ivt:
-            ivt.stop_rtmp_publish(project, camera_id, publish_url)
-        else:
-            raise IVRError("'{0}' camera '{1}' does not exist".format(project, camera_id))
 
     def on_camera_offline(self, camera_id):
         pass
