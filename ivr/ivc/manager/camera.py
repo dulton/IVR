@@ -16,7 +16,7 @@ class Camera(object):
     FLAG_HD = 0b100
 
     def __init__(self, project_name, uuid, device_uuid, channel_index, name,
-                 flags, is_online, desc, long_desc, longitude, latitude, altitude):
+                 flags, is_online, desc, long_desc, longitude, latitude, altitude, ctime, utime):
         self.project_name = project_name
         self.uuid = uuid
         self.device_uuid = device_uuid
@@ -29,6 +29,8 @@ class Camera(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
+        self.ctime = ctime
+        self.utime = utime
 
     def is_online(self):
         return self.state == self.STATE_ONLINE
@@ -37,7 +39,7 @@ class Camera(object):
         # find the highest possible quality that lower than or equal to stream_quality
         target = self.stream_qualities[0]
         for i, quality in enumerate(self.stream_qualities):
-            if stream_quality == quality and self.flag|(1<<i):
+            if stream_quality == quality and self.flags|(1<<i):
                 return quality
             elif stream_quality == quality:
                 break
@@ -64,4 +66,12 @@ class CameraManager(object):
 
     def on_camera_offline(self, camera_id):
         pass
+
+    def rtmp_publish_stream(self, project_name, camera_id, stream_id, target_quality, publish_to):
+        camera = self.get_camera(project_name, camera_id)
+        self._device_mngr.rtmp_publish_stream(project_name, camera.device_uuid, camera_id, stream_id, target_quality, publish_to)
+
+    def stop_rtmp_publish(self, project_name, camera_id, stream_id):
+        camera = self.get_camera(project_name, camera_id)
+        self._device_mngr.stop_rtmp_publish(project_name, camera.device_uuid, camera_id, stream_id)
 

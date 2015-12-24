@@ -4,6 +4,7 @@ from uuid import uuid4
 import gevent
 import time
 import logging
+from ivr.common.exception import IVRError
 
 log = logging.getLogger(__name__)
 
@@ -34,17 +35,21 @@ class UserSessionManager(object):
 
     def request_session(self, project_name, camera_id, stream_format, stream_quality, create=True):
         stream = self._stream_mngr.request_stream(project_name, camera_id, stream_format, stream_quality, auto_delete=True, create=create)
-        session_id = uuid4()
-        session = self._dao.add_session(project_name, session_id, camera_id, stream.stream_format, stream.stream_quality, stream.id, stream.url)
-        return session.url, session.session_id
+        session_id = str(uuid4())
+        session = self._dao.add_new_user_session(project_name, session_id, camera_id, stream.stream_format, stream.stream_quality, stream.id, stream.url)
+        return session.url, session_id
 
     def stop_session(self, project_name, camera_id, session_id):
         session = self._dao.get_user_session(project_name, session_id)
+        if not session:
+            raise IVRError('session "{0}" of project "{1}" not found'.format(session_id, project_name))
         session.end = time.time()
         self._dao.update_user_session(project_name, session)
 
     def keepalive_session(self, project_name, camera_id, session_id):
         session = self._dao.get_user_session(project_name, session_id)
+        if not session:
+            raise IVRError('session "{0}" of project "{1}" not found'.format(session_id, project_name))
         session.last_keepalive = time.time()
         self._dao.update_user_session(project_name, session)
 

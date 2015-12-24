@@ -52,7 +52,11 @@ def main():
         else:
             pass
 
-        device_mngr = DeviceWSConnectionManager(device_dao, config['device_ttl'])
+        if not config['ws_listen']:
+            from ivr.ivc.manager.device import DummyDeviceManager
+            device_mngr = DummyDeviceManager(device_dao)
+        else:
+            device_mngr = DeviceWSConnectionManager(device_dao, config['device_ttl'])
         camera_mngr = CameraManager(camera_dao, device_mngr)
         stream_mngr = StreamManager(stream_dao,
                                     camera_mngr,
@@ -65,7 +69,8 @@ def main():
                                                config['user_session_ttl'])
 
         # prepare websocket server
-        ws_server = WSServer(config['ws_listen'], device_mngr.device_online)
+        if config['ws_listen']:
+            ws_server = WSServer(config['ws_listen'], device_mngr.device_online)
 
         # prepare REST API
         from pyramid.config import Configurator
@@ -86,7 +91,10 @@ def main():
         rest_server = WSGIServer(config['rest_listen'], pyramid_config.make_wsgi_app())
 
         # start server and wait
-        gevent.joinall(map(gevent.spawn, (ws_server.server_forever, rest_server.serve_forever)))
+        if config['ws_listen']:
+            gevent.joinall(map(gevent.spawn, (ws_server.server_forever, rest_server.serve_forever)))
+        else:
+            gevent.joinall(map(gevent.spawn, (rest_server.serve_forever, )))
         log.info("Quit")
     except Exception:
         log.exception("Failed to start IVC")

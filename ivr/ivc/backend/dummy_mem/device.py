@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division
 from ivr.ivc.manager.device import Device as DeviceModel
 from ivr.common.exception import IVRError
+from datetime import datetime
 
 
 class Device(DeviceModel):
@@ -13,7 +14,29 @@ class DeviceDAO(object):
     model_cls = Device
 
     def __init__(self):
-        self._devices = []
+        self._devices = [
+            Device(
+                project_name='weizhong',
+                uuid='335e8ef7-d7d0-4058-b340-f82597b65a1e',
+                name='weizhong-device',
+                type='IVT',
+                firmware_model='f1',
+                hardware_model='h1',
+                media_channel_num=10,
+                is_online=1,
+                flags=0,
+                login_code='code',
+                login_passwd='passwd',
+                desc='weizhong device',
+                long_desc='',
+                longitude=123,
+                latitude=456,
+                altitude=222,
+                ctime=datetime.now(),
+                utime=datetime.now(),
+                ltime=datetime.now()
+            )
+        ]
 
     def get_device_count(self, project_name):
         cnt = 0

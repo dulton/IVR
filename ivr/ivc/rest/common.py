@@ -29,7 +29,7 @@ class PrefligthHandlerFactory(object):
         if request.headers.get('Access-Control-Request-Method') not in self.allow_methods:
             response.status_int = 401
         else:
-            response.headers[str('Access-Control-Allow-Methods')] = self._allow_methods_header
+            response.headers[str('Access-Control-Allow-Methods')] = str(self._allow_methods_header)
             response.headers[str('Access-Control-Allow-Headers')] = str('Origin, X-Requested-With, Content-Type, Accept')
 
 

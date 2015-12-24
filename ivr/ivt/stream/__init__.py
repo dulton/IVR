@@ -36,7 +36,7 @@ class Stream(object):
         self.camera = camera
         self.url = url
         self.quality = quality
-        self.stream_name = '_'.join(self.camera.project, self.camera.id, self.type, self.quality)
+        self.stream_name = '_'.join((self.camera.project, self.camera.id, self.type, self.quality))
         self.stsw_source = None
         self.stsw_senders = {}
         gevent.spawn(self._destroy_stsw_source_on_idle)
@@ -46,7 +46,7 @@ class Stream(object):
 
     def rtmp_publish(self, rtmp_url):
         self._prepare_stsw_source()
-        sender_name = '_'.join('rtmp', 'sender', self.stream_name)
+        sender_name = '_'.join(('rtmp', 'sender', self.stream_name))
         sender = create_sender(sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
                                sender_name=sender_name,
                                dest_url=rtmp_url,

@@ -48,11 +48,11 @@ class StreamManager(object):
             if stream:
                 return stream
         # target stream does not exist, create stream
-        stream_id = '_'.join(project_name, camera_id, stream_format, stream_quality)
+        stream_id = '_'.join((project_name, camera_id, stream_format, stream_quality))
         publish_to = os.path.join(self._rtmp_publish_url_prefix, stream_id)
         url = self.calc_url(stream_format, stream_id)
         stream = self._dao.add_stream(project_name, stream_id, camera_id, stream_format, stream_quality, publish_to, url)
-        self._camera_mngr.rtmp_publish_stream(self, project_name, camera_id, target_quality, publish_to)
+        self._camera_mngr.rtmp_publish_stream(project_name, camera_id, stream_id, target_quality, publish_to)
         return stream
 
     def stop_stream(self, stream_id):
