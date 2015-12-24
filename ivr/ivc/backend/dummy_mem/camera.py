@@ -59,11 +59,11 @@ class CameraDAO(object):
         if limit == 0:
             return result
         for c in self._cameras:
-            if c.project_name == project_name:
-                if len(result) < limit:
+            if len(result) < limit:
+                if c.project_name == project_name:
                     result.append(c)
-                    if len(result) + 1 == limit:
-                        break
+            else:
+                break
         return result
 
     def get_camera(self, project_name, uuid):
