@@ -53,14 +53,14 @@ class CameraManager(object):
         self._camera_dao = camera_dao
         self._device_mngr = device_mngr
 
-    def get_camera(self, project, camera_id):
-        return self._camera_dao.get_camera(project, camera_id)
+    def get_camera(self, project_name, camera_id):
+        return self._camera_dao.get_camera(project_name, camera_id)
 
-    def get_camera_list(self, project, start, limit):
-        return self._camera_dao.get_camera_list(project, start, limit)
+    def get_camera_list(self, project_name, start, limit):
+        return self._camera_dao.get_camera_list(project_name, start, limit)
 
-    def camera_cnt(self, project):
-        return self._camera_dao.get_camera_count(project)
+    def get_camera_count(self, project_name):
+        return self._camera_dao.get_camera_count(project_name)
 
     def on_camera_offline(self, camera_id):
         pass
