@@ -85,7 +85,7 @@ class SADevice(Base):
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     ltime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
 
-    cameras = relationship("SACamera", order_by=SACamera._id, back_populates="device")
+    cameras = relationship("SACamera", order_by=SACamera.id, back_populates="device")
     project = relationship("SAProject", back_populates="devices")
 
 
@@ -119,8 +119,8 @@ class SAProject(Base):
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     max_media_sessions = Column(Integer, nullable=False, server_default=text("0"))
 
-    cameras = relationship("SACamera", order_by=SACamera._id, back_populates="project")
-    devices = relationship("SADevice", order_by=SADevice._id, back_populates="project")
+    cameras = relationship("SACamera", order_by=SACamera.id, back_populates="project")
+    devices = relationship("SADevice", order_by=SADevice.id, back_populates="project")
     users = relationship('SAUser', secondary=project_user_relation,
                          back_populates="projects")
 

@@ -15,8 +15,8 @@ class Camera(object):
     FLAG_SD = 0b10
     FLAG_HD = 0b100
 
-    def __init__(self, project_name, uuid, device_uuid, channel_index, name,
-                 flags, is_online, desc, long_desc, longitude, latitude, altitude):
+    def __init__(self, project_name, uuid, device_uuid="", channel_index=0, name="cammera",
+                 flags=0, is_online=0, desc="", long_desc="", longitude=0.0, latitude=0.0, altitude=0.0):
         self.project_name = project_name
         self.uuid = uuid
         self.device_uuid = device_uuid
@@ -29,9 +29,6 @@ class Camera(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
-
-    def is_online(self):
-        return self.state == self.STATE_ONLINE
 
     def find_possible_quality(self, stream_quality):
         # find the highest possible quality that lower than or equal to stream_quality

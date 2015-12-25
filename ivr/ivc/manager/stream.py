@@ -40,7 +40,7 @@ class StreamManager(object):
         camera = self._camera_mngr.get_camera(project_name, camera_id)
         if not camera:
             raise IVRError('No such camera "{0}" or project "{1}"'.format(camera_id, project_name))
-        if not camera.is_online:
+        if camera.is_online == 0:
             raise IVRError('{0} is offline'.format(camera))
         target_quality = camera.find_possible_quality(stream_quality)
         if target_quality != stream_quality:

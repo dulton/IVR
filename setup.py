@@ -63,5 +63,6 @@ setup(name='IVR',
       [console_scripts]
       ivc = ivr.ivc.main:main
       ivt = ivr.ivt.main:main
+      ivc_deploy = ivr.scripts.ivc_deploy:main
       """,
       )
