@@ -32,7 +32,7 @@ class Camera(object):
             self.streams[s.type][s.quality] = s
 
     def __str__(self):
-        return '_'.join(self.project, self.id)
+        return '_'.join((self.project, self.id))
 
     def rtmp_publish(self, quality, rtmp_url):
         stream = self._match_stream(quality, prefered_type=['rtsp'])

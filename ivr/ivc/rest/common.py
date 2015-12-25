@@ -29,8 +29,8 @@ class PrefligthHandlerFactory(object):
         if request.headers.get('Access-Control-Request-Method') not in self.allow_methods:
             response.status_int = 401
         else:
-            response.headers['Access-Control-Allow-Methods'] = self._allow_methods_header
-            response.headers['Access-Control-Allow-Headers'] = 'Origin, X-Requested-With, Content-Type, Accept'
+            response.headers[str('Access-Control-Allow-Methods')] = str(self._allow_methods_header)
+            response.headers[str('Access-Control-Allow-Headers')] = str('Origin, X-Requested-With, Content-Type, Accept')
 
 
 class _rest_view(view_config):
@@ -114,8 +114,8 @@ def add_response_header(event):
     add all custom header here
     """
     response = event.response
-    response.headers['X-Powered-By'] = 'Pyramid Framework'
-    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers[str('X-Powered-By')] = str('Pyramid Framework')
+    response.headers[str('Access-Control-Allow-Origin')] = str('*')
 
 
 def get_params_from_request(request, schema=None):

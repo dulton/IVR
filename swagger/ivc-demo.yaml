@@ -4,8 +4,8 @@ info:
   description: IVC的REST接口
   version: 1.0.0
 #host: 121.41.72.231:5001
-#host: 192.168.0.253:15001
-host: 192.168.1.150:9999
+host: 192.168.0.253:15001
+#host: 192.168.1.150:9999
 schemes:
   - http
 basePath: /api/ivc/v1
@@ -135,7 +135,7 @@ parameters:
     required: true
   session_id:
     name: session_id
-    in: paths
+    in: path
     description: 用户媒体流会话ID
     type: string
     required: true
@@ -200,12 +200,22 @@ definitions:
         type: string
         description: 长描述
       longitude:
-        type: float
+        type: number
+        format: float
         description: 经度
       latitude:
-        type: float
+        type: number
+        format: float
         description: 纬度
       altitude:
-        type: float
+        type: number
+        format: float
         description: 海拔
-
+      ctime:
+        type: string
+        format: dateTime
+        description: ''
+      utime:
+        type: string
+        format: dateTime
+        description: ''

@@ -22,7 +22,7 @@ def get_camera_list(request):
     req = get_params_from_request(request, get_cameras_list_schema)
     start = req['start']
     limit = req['limit']
-    total = request.registry.camera_mngr.get_camera_count()
+    total = request.registry.camera_mngr.get_camera_count(request.matchdict['project_name'])
     resp = {'total': total,
             'start': req['start'],
             'list': []}

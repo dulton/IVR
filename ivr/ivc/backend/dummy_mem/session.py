@@ -3,20 +3,11 @@ from __future__ import unicode_literals, division
 import time
 import gevent
 from ivr.common.exception import IVRError
+from ivr.ivc.manager.session import UserSession
 
 
-class UserSession(object):
-    def __init__(self, project_name, camera_uuid, session_id, format, quality):
-        self.project_name = project_name
-        self.camera_uuid = camera_uuid
-        self.session_id = session_id
-        self.format = format
-        self.quliaty = quality
-        self.start = None
-        self.end = None
-
-    def __str__(self):
-        return "session '{0}' of project '{1}'".format(self.session_id, self.project_name)
+class UserSession(UserSession):
+    pass
 
 
 class UserSessionDAO(object):
@@ -81,7 +72,7 @@ class UserSessionDAO(object):
     def update_user_session(self, project_name, session):
         for i, s in enumerate(self._sessions):
             if s.project_name == session.project_name and s.session_id == session.session_id:
-                if session.end is not None:
+                if session.end is None:
                     self._sessions[i] = session
                 else:
                     self._sessions.pop(i)

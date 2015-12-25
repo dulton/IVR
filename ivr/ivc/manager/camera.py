@@ -16,7 +16,7 @@ class Camera(object):
     FLAG_HD = 0b100
 
     def __init__(self, project_name, uuid, device_uuid="", channel_index=0, name="cammera",
-                 flags=0, is_online=0, desc="", long_desc="", longitude=0.0, latitude=0.0, altitude=0.0):
+                 flags=0, is_online=0, desc="", long_desc="", longitude=0.0, latitude=0.0, altitude=0.0, ctime=None, utime=None):
         self.project_name = project_name
         self.uuid = uuid
         self.device_uuid = device_uuid
@@ -29,12 +29,14 @@ class Camera(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
+        self.ctime = ctime
+        self.utime = utime
 
     def find_possible_quality(self, stream_quality):
         # find the highest possible quality that lower than or equal to stream_quality
         target = self.stream_qualities[0]
         for i, quality in enumerate(self.stream_qualities):
-            if stream_quality == quality and self.flag|(1<<i):
+            if stream_quality == quality and self.flags|(1<<i):
                 return quality
             elif stream_quality == quality:
                 break
@@ -50,15 +52,23 @@ class CameraManager(object):
         self._camera_dao = camera_dao
         self._device_mngr = device_mngr
 
-    def get_camera(self, project, camera_id):
-        return self._camera_dao.get_camera(project, camera_id)
+    def get_camera(self, project_name, camera_id):
+        return self._camera_dao.get_camera(project_name, camera_id)
 
-    def get_camera_list(self, project, start, limit):
-        return self._camera_dao.get_camera_list(project, start, limit)
+    def get_camera_list(self, project_name, start, limit):
+        return self._camera_dao.get_camera_list(project_name, start, limit)
 
-    def camera_cnt(self, project):
-        return self._camera_dao.get_camera_count(project)
+    def get_camera_count(self, project_name):
+        return self._camera_dao.get_camera_count(project_name)
 
     def on_camera_offline(self, camera_id):
         pass
+
+    def rtmp_publish_stream(self, project_name, camera_id, stream_id, target_quality, publish_to):
+        camera = self.get_camera(project_name, camera_id)
+        self._device_mngr.rtmp_publish_stream(project_name, camera.device_uuid, camera_id, stream_id, target_quality, publish_to)
+
+    def stop_rtmp_publish(self, project_name, camera_id, stream_id):
+        camera = self.get_camera(project_name, camera_id)
+        self._device_mngr.stop_rtmp_publish(project_name, camera.device_uuid, camera_id, stream_id)
 

@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
 from ivr.ivc.manager.camera import Camera as BaseCamera
+from datetime import datetime
 
 
 class Camera(BaseCamera):
@@ -25,6 +26,8 @@ class CameraDAO(object):
                 longitude=123,
                 latitude=234,
                 altitude=456,
+                ctime=datetime.now(),
+                utime=datetime.now()
             ),
             Camera(
                 uuid='c72bc4ee-0869-44cc-906d-79bc568d16c6',
@@ -39,6 +42,8 @@ class CameraDAO(object):
                 longitude=123,
                 latitude=234,
                 altitude=456,
+                ctime=datetime.now(),
+                utime=datetime.now()
             ),
         ]
 
@@ -54,11 +59,11 @@ class CameraDAO(object):
         if limit == 0:
             return result
         for c in self._cameras:
-            if c.project_name == project_name:
-                if len(result) < limit:
+            if len(result) < limit:
+                if c.project_name == project_name:
                     result.append(c)
-                    if len(result) + 1 == limit:
-                        break
+            else:
+                break
         return result
 
     def get_camera(self, project_name, uuid):

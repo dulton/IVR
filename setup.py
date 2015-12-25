@@ -10,12 +10,12 @@ requires = [
     'gevent>=1.1rc2',
     #'ws4py==0.3.4',
     'ws4py==0.3.5',
-    'PyYaml==3.11',
+    'PyYAML==3.11',
     'pyramid==1.5.7',
     'pyramid_debugtoolbar>=2.2.2',
     'pyramid_chameleon>=0.3',
-    'sqlalchemy>=1.0.8',
-    'pymysql>=0.6.7',
+    'SQLAlchemy>=1.0.8',
+    'PyMySQL>=0.6.7',
     'alembic>=0.8.0',
 ]
 
