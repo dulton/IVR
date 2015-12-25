@@ -13,7 +13,7 @@ from __future__ import unicode_literals, division
 from sqlalchemy import Column, ForeignKey, text, Table
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Float, Text, \
-    BigInteger, CHAR, Boolean, TIMESTAMP
+    BigInteger, CHAR, Boolean, TIMESTAMP, SmallInteger
 from sqlalchemy.ext.declarative import declarative_base
 from ...common.utils import STRING, encode_json
 import json
@@ -26,7 +26,7 @@ class SACamera(Base):
     """ The SQLAlchemy declarative model class for a camera object. """
     __tablename__ = 'camera'
 
-    _id = Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    id = Column(BigInteger, nullable=False, primary_key=True, autoincrement=True)
     uuid = Column(CHAR(length=36, convert_unicode=True),
                   nullable=False, index=True, unique=True)
     device_uuid = Column(CHAR(length=36, convert_unicode=True),
@@ -43,7 +43,7 @@ class SACamera(Base):
                           ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
                           nullable=False, server_default="")
     flags = Column(Integer, nullable=False, server_default=text("0"))
-    is_online = Column(Boolean, nullable=False, server_default=text("0"))
+    is_online = Column(SmallInteger, nullable=False, server_default=text("0"))
     ctime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
@@ -60,7 +60,7 @@ class SADevice(Base):
     """ The SQLAlchemy declarative model class for a camera object. """
     __tablename__ = 'device'
 
-    _id = Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    id = Column(BigInteger, nullable=False, primary_key=True, autoincrement=True)
     uuid = Column(CHAR(length=36, convert_unicode=True),
                   nullable=False, index=True, unique=True)
     name = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
@@ -77,7 +77,7 @@ class SADevice(Base):
                           ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
                           nullable=False, server_default="")
     flags = Column(Integer, nullable=False, server_default=text("0"))
-    is_online = Column(Boolean, nullable=False, server_default=text("0"))
+    is_online = Column(SmallInteger, nullable=False, server_default=text("0"))
     login_code = Column(String(length=64, convert_unicode=True),
                         nullable=False, index=True, unique=True)
     login_passwd = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
@@ -109,7 +109,7 @@ class SAProject(Base):
     """ The SQLAlchemy declarative model class for a camera object. """
     __tablename__ = 'project'
 
-    _id = Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    id = Column(BigInteger, nullable=False, primary_key=True, autoincrement=True)
     name = Column(String(length=64, convert_unicode=True),
                   nullable=False, index=True, unique=True)
     title = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
@@ -134,7 +134,7 @@ class SAUser(Base):
     """ The SQLAlchemy declarative model class for a camera object. """
     __tablename__ = 'user'
 
-    _id = Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    id = Column(BigInteger, nullable=False, primary_key=True, autoincrement=True)
     username = Column(String(length=64, convert_unicode=True),
                       nullable=False, index=True, unique=True)
     password = Column(String(length=64, convert_unicode=True),
