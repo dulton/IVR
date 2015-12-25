@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
-
+import datetime
 from ivr.common.exception import IVRError
 
 import logging
@@ -29,8 +29,14 @@ class Camera(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
-        self.ctime = ctime
-        self.utime = utime
+        if ctime is None:
+            self.ctime = datetime.datetime.now()
+        else:
+            self.ctime = ctime
+        if utime is None:
+            self.utime = datetime.datetime.now()
+        else:
+            self.utime = utime
 
     def find_possible_quality(self, stream_quality):
         # find the highest possible quality that lower than or equal to stream_quality

@@ -20,15 +20,10 @@ class Device(object):
         self.name = name
         self.type = type
         self.flags = flags
-<<<<<<< .mine
         self.is_online = is_online
-        self.dev_code = dev_code
-        self.password = password
-=======
+        self.login_passwd = login_passwd
         self.is_online = is_online
         self.login_code = login_code
-
->>>>>>> .theirs
         self.firmware_model = firmware_model
         self.hardware_model = hardware_model
         self.media_channel_num = media_channel_num

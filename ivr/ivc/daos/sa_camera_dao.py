@@ -9,22 +9,103 @@ class SACameraDao(object):
         self._dao_context_mngr = dao_context_mngr
 
     def get_by_uuid(self, uuid):
-        pass
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
+            sa_camera = session.query(SACamera).filter(SACamera.uuid == uuid).one_or_none()
+            if sa_camera is None:
+                return None
+            camera = Camera(project_name=sa_camera.project_name,
+                            uuid=sa_camera.uuid,
+                            device_uuid=sa_camera.device_uuid,
+                            channel_index=sa_camera.channel_index,
+                            name=sa_camera.name,
+                            flags=sa_camera.flags,
+                            is_online=sa_camera.is_online,
+                            desc=sa_camera.desc,
+                            long_desc=sa_camera.long_desc,
+                            longitude=sa_camera.longitude,
+                            latitude=sa_camera.latitude,
+                            altitude=sa_camera.altitude,
+                            ctime=sa_camera.ctime,
+                            utime=sa_camera.utime)
+        return camera
 
-    def get_list_by_project(self, filter_name=None, filter_value="", project_name=None, start_index=0, max_number=65535):
-        pass
+    def get_list_by_project(self, filter_name=None, filter_value="", project_name=None,
+                                start_index=0, max_number=65535):
+        camera_list = []
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
+            query = session.query(SACamera)
+            if project_name is not None:
+                query = query.filter(SACamera.project_name == project_name)
+            if filter_name is not None:
+                query = query.filter(getattr(SACamera, filter_name).like("%"+filter_value+"%"))
+            for sa_camera in query[start_index, max_number]:
+                camera = Camera(project_name=sa_camera.project_name,
+                                uuid=sa_camera.uuid,
+                                device_uuid=sa_camera.device_uuid,
+                                channel_index=sa_camera.channel_index,
+                                name=sa_camera.name,
+                                flags=sa_camera.flags,
+                                is_online=sa_camera.is_online,
+                                desc=sa_camera.desc,
+                                long_desc=sa_camera.long_desc,
+                                longitude=sa_camera.longitude,
+                                latitude=sa_camera.latitude,
+                                altitude=sa_camera.altitude,
+                                ctime=sa_camera.ctime,
+                                utime=sa_camera.utime)
+                camera_list.append(camera)
+        return camera_list
 
     def get_count_by_project(self, filter_name=None, filter_value="", project_name=None):
-        pass
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
+            query = session.query(SACamera)
+            if project_name is not None:
+                query = query.filter(SACamera.project_name == project_name)
+            if filter_name is not None:
+                query = query.filter(getattr(SACamera, filter_name).like("%"+filter_value+"%"))
+            cnt = query.count()
+        return cnt
 
     def add(self, camera):
-        pass
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
+            sa_camera = SACamera(
+                uuid=camera.uuid,
+                device_uuid=camera.device_uuid,
+                channel_index=camera.channel_index,
+                name=camera.name,
+                flags=camera.flags,
+                is_online=camera.is_online,
+                desc=camera.desc,
+                long_desc=camera.long_desc,
+                longitude=camera.longitude,
+                latitude=camera.latitude,
+                altitude=camera.altitude,
+                project_name=camera.project_name,
+                ctime=camera.ctime,
+                utime=camera.utime)
+            session.add(sa_camera)
 
     def delete_by_uuid(self, uuid):
-        pass
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
+            sa_camera = session.query(SACamera).filter(SACamera.uuid == uuid).one_or_none()
+            if sa_camera is None:
+                return
+            session.delete(sa_camera)
 
     def update(self, camera):
-        pass
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
 
 
 def test_main():
