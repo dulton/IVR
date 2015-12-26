@@ -167,7 +167,7 @@ class SADevice(Base):
         return device
 
 project_user_relation = Table('project_user_relation', Base.metadata,
-                              # Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True),
+                              Column('id', BigInteger, nullable=False, primary_key=True, autoincrement=True),
                               Column('user_username', String(length=64, convert_unicode=True),
                                       ForeignKey('user.username', onupdate="CASCADE", ondelete="CASCADE"),
                                      nullable=False),

@@ -71,12 +71,13 @@ def upgrade():
     )
     op.create_index(op.f('ix_device_login_code'), 'device', ['login_code'], unique=True)
     op.create_index(op.f('ix_device_uuid'), 'device', ['uuid'], unique=True)
-    op.create_table('project_user_relation',        #  sa.Column('id', sa.BigInteger(), nullable=False),
+    op.create_table('project_user_relation',
+    sa.Column('id', sa.BigInteger(), nullable=False),
     sa.Column('user_username', sa.String(length=64, convert_unicode=True), nullable=False),
     sa.Column('project_name', sa.String(length=64, convert_unicode=True), nullable=False),
     sa.ForeignKeyConstraint(['project_name'], [u'project.name'], onupdate=u'CASCADE', ondelete=u'CASCADE'),
-    sa.ForeignKeyConstraint(['user_username'], [u'user.username'], onupdate=u'CASCADE', ondelete=u'CASCADE')
-    # sa.PrimaryKeyConstraint('id')
+    sa.ForeignKeyConstraint(['user_username'], [u'user.username'], onupdate=u'CASCADE', ondelete=u'CASCADE'),
+    sa.PrimaryKeyConstraint('id')
     )
     op.create_table('camera',
     sa.Column('id', sa.BigInteger(), nullable=False),
