@@ -2,9 +2,7 @@ from __future__ import unicode_literals, division, print_function
 import sys
 from sqlalchemy import engine_from_config
 from sqlalchemy.schema import MetaData
-from streamswitch.wsgiapp.models import Base
 import argparse
-from streamswitch.exceptions import StreamSwitchError
 import os
 import os.path
 import stat
