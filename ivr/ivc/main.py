@@ -26,7 +26,10 @@ config_schema = Schema({
     'stream_ttl': IntVal(min=10, max=1800),
     'user_session_ttl': IntVal(min=10, max=1800),
     'device_ttl': IntVal(min=10, max=1800),
-    Default('debug'): Optional(BoolVal(), default=False),
+    Optional('sqlalchemy'): {
+        'url': 'mysql+pymysql://test:123456@192.168.1.63/ivc_test'
+    },
+    Optional('debug'): Default(BoolVal(), default=False),
 })
 
 
@@ -43,14 +46,24 @@ def main():
         config = config_schema.validate(config)
 
         # prepare data backend
-        if not config.get('mysql'):
+        if config.get('sqlalchemy'):
+            from sqlalchemy import engine_from_config
+            from ivr.ivc.daos.sa_dao_context_mngr import AlchemyDaoContextMngr
+            from ivr.ivc.daos.sa_camera_dao import SACameraDao
+            from ivr.ivc.daos.sa_device_dao import SADeviceDao
+            engine = engine_from_config(config['sqlalchemy'], prefix='')
+            dao_context_mngr = AlchemyDaoContextMngr(engine)
+            camera_dao = SACameraDao(dao_context_mngr)
+            device_dao = SADeviceDao(dao_context_mngr)
+            from ivr.ivc.backend.dummy_mem import UserSessionDAO, StreamDAO
+            stream_dao = StreamDAO()
+            user_session_dao = UserSessionDAO()
+        else:
             from ivr.ivc.backend.dummy_mem import CameraDAO, UserSessionDAO, StreamDAO, DeviceDAO
             camera_dao = CameraDAO()
             stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
             device_dao = DeviceDAO()
-        else:
-            pass
 
         if not config['ws_listen']:
             from ivr.ivc.manager.device import DummyDeviceManager
@@ -67,10 +80,6 @@ def main():
         user_session_mngr = UserSessionManager(user_session_dao,
                                                stream_mngr,
                                                config['user_session_ttl'])
-
-        # prepare websocket server
-        if config['ws_listen']:
-            ws_server = WSServer(config['ws_listen'], device_mngr.device_online)
 
         # prepare REST API
         from pyramid.config import Configurator
@@ -92,6 +101,7 @@ def main():
 
         # start server and wait
         if config['ws_listen']:
+            ws_server = WSServer(config['ws_listen'], device_mngr.device_online)
             gevent.joinall(map(gevent.spawn, (ws_server.server_forever, rest_server.serve_forever)))
         else:
             gevent.joinall(map(gevent.spawn, (rest_server.serve_forever, )))

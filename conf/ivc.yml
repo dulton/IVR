@@ -6,4 +6,6 @@ hls_url_prefix: 'http://121.41.72.231/hls/'
 stream_ttl: 60
 user_session_ttl: 20
 device_ttl: 30
+sqlalchemy:
+  url: 'mysql+pymysql://test:123456@192.168.1.63/ivc_test'
 debug: True
