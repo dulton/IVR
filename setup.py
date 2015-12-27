@@ -54,11 +54,7 @@ setup(name='IVR',
       install_requires=requires,
       tests_require=requires,
       dependency_links=['https://github.com/hyt-hz/WebSocket-for-Python/archive/master.zip#egg=ws4py-0.3.5'],
-      test_suite="IVR.tests",
-      #     data_files=[
-      #         ('/etc/', ['storlever.ini']),
-      #         ('/etc/init.d', ['initscripts/storlever']),
-      #     ],
+      test_suite="ivr.tests",
       entry_points="""
       [console_scripts]
       ivc = ivr.ivc.main:main

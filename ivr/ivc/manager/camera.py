@@ -63,13 +63,26 @@ class CameraManager(object):
         self._device_mngr = device_mngr
 
     def get_camera(self, project_name, camera_id):
-        return self._camera_dao.get_camera(project_name, camera_id)
+        camera = self._camera_dao.get_by_uuid(camera_id)
+        if camera and camera.project_name != project_name:
+            log.warning('Try to access camera <{0}> of project <{1}> from project <{1}>'.format(camera_id, camera.project_name, project_name))
+            camera = None
+        return camera
 
     def get_camera_list(self, project_name, start, limit):
-        return self._camera_dao.get_camera_list(project_name, start, limit)
+        return self._camera_dao.get_list_by_project(project_name=project_name, start_index=start, max_number=limit)
 
     def get_camera_count(self, project_name):
-        return self._camera_dao.get_camera_count(project_name)
+        return self._camera_dao.get_count_by_project(project_name=project_name)
+
+    def add_camera(self, camera):
+        self._camera_dao.add(camera)
+
+    def delete_camera(self, project_name, camera):
+        if project_name != camera.project_name:
+            log.warning('Try to delete camera <{0}> of project <{1}> from project <{1}>'.format(camera.uuid, camera.project_name, project_name))
+            return
+        self._camera_dao.delete_by_uuid(camera.uuid)
 
     def on_camera_offline(self, camera_id):
         pass

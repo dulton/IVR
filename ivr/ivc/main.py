@@ -59,7 +59,7 @@ def main():
             stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
         else:
-            from ivr.ivc.backend.dummy_mem import CameraDAO, UserSessionDAO, StreamDAO, DeviceDAO
+            from ivr.ivc.dummy_daos import CameraDAO, UserSessionDAO, StreamDAO, DeviceDAO
             camera_dao = CameraDAO()
             stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
