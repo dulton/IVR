@@ -14,7 +14,7 @@ requires = [
     'pyramid==1.5.7',
     'pyramid_debugtoolbar>=2.2.2',
     'pyramid_chameleon>=0.3',
-    'SQLAlchemy>=1.0.8',
+    'SQLAlchemy>=1.0.9',
     'PyMySQL>=0.6.7',
     'alembic>=0.8.0',
 ]

@@ -40,7 +40,10 @@ class Device(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
-        now = datetime.datetime.now()
+        if ctime is None or utime is None or ltime is None:
+            now = datetime.datetime.now()
+        else:
+            now = 0
         if ctime is None:
             self.ctime = now
         else:

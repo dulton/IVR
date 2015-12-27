@@ -228,7 +228,7 @@ class SAUser(Base):
     title = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     long_desc = Column(String(length=1024, convert_unicode=True), nullable=False, server_default="")
-
+    flags = Column(Integer, nullable=False, server_default=text("0"))
     cellphone = Column(String(length=32, convert_unicode=True), nullable=False, server_default="")
     email = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
 
@@ -243,5 +243,26 @@ class SAUser(Base):
         return "SA User Object(name:%s)" % (
             self.username
         )
+
+    def from_user(self, user):
+        self.username = user.username
+        self.password = user.password
+        self.title = user.title
+        self.desc = user.desc
+        self.long_desc = user.long_desc
+        self.flags = user.flags
+        self.cellphone = user.cellphone
+        self.email = user.email
+        self.ctime = user.ctime
+        self.utime = user.utime
+        self.ltime = user.ltime
+
+    def to_user(self, user_cls):
+        return user_cls(username=self.username, password=self.password,
+                        title=self.title,
+                        desc=self.desc, long_desc=self.long_desc,
+                        flags=self.flags, cellphone=self.cellphone,
+                        email=self.email, ctime=self.ctime, utime=self.utime,
+                        ltime=self.ltime)
 
 

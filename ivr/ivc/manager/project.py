@@ -14,7 +14,10 @@ class Project(object):
         self.desc = desc
         self.long_desc = long_desc
         self.max_media_sessions = max_media_sessions
-        now = datetime.datetime.now()
+        if ctime is None or utime is None:
+            now = datetime.datetime.now()
+        else:
+            now = 0
         if ctime is None:
             self.ctime = now
         else:
@@ -25,5 +28,5 @@ class Project(object):
             self.utime = utime
 
     def __str__(self):
-        return 'project "{0}"'.format(self.project_name)
+        return 'project "{0}"'.format(self.name)
 
