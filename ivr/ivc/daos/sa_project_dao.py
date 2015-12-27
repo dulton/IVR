@@ -32,7 +32,7 @@ class SAProjectDao(object):
                 project_list.append(project)
         return project_list
 
-    def get_count(self, filter_name=None, filter_value="", project_name=None):
+    def get_count(self, filter_name=None, filter_value=""):
         with self._dao_context_mngr.context() as context:
             # in a transaction
             session = context.session
@@ -54,10 +54,10 @@ class SAProjectDao(object):
         with self._dao_context_mngr.context() as context:
             # in a transaction
             session = context.session
-            sa_camera = session.query(SAProject).filter(SAProject.name == name).one_or_none()
-            if sa_camera is None:
+            sa_project = session.query(SAProject).filter(SAProject.name == name).one_or_none()
+            if sa_project is None:
                 return
-            session.delete(sa_camera)
+            session.delete(sa_project)
 
     def update(self, project):
         with self._dao_context_mngr.context() as context:

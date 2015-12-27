@@ -18,7 +18,15 @@ class SADeviceDao(object):
             device = sa_device.to_device(Device)
         return device
 
-    def get_list_by_project(self, filter_name=None, filter_value="", project_name=None, start_index=0, max_number=65535):
+    def get_list(self, filter_name=None, filter_value="",
+                 start_index=0, max_number=65535):
+        return self.get_list_by_project(filter_name=filter_name, filter_value=filter_value,
+                                         project_name=None,
+                                         start_index=start_index, max_number=max_number)
+
+    def get_list_by_project(self, filter_name=None, filter_value="",
+                            project_name=None,
+                            start_index=0, max_number=65535):
         device_list = []
         with self._dao_context_mngr.context() as context:
             # in a transaction
@@ -33,6 +41,10 @@ class SADeviceDao(object):
                 device_list.append(device)
         return device_list
 
+    def get_count(self, filter_name=None, filter_value=""):
+        return self.get_count_by_project(filter_name=filter_name, filter_value=filter_value,
+                                         project_name=None)
+    
     def get_count_by_project(self, filter_name=None, filter_value="", project_name=None):
         with self._dao_context_mngr.context() as context:
             # in a transaction

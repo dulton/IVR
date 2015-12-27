@@ -18,8 +18,14 @@ class SACameraDao(object):
             camera = sa_camera.to_camera(Camera)
         return camera
 
+    def get_list(self, filter_name=None, filter_value="",
+                 start_index=0, max_number=65535):
+        return self.get_list_by_project(filter_name=filter_name, filter_value=filter_value,
+                                        project_name=None,
+                                        start_index=start_index, max_number=max_number)
+
     def get_list_by_project(self, filter_name=None, filter_value="", project_name=None,
-                                start_index=0, max_number=65535):
+                               start_index=0, max_number=65535):
         camera_list = []
         with self._dao_context_mngr.context() as context:
             # in a transaction
@@ -33,6 +39,10 @@ class SACameraDao(object):
                 camera = sa_camera.to_camera(Camera)
                 camera_list.append(camera)
         return camera_list
+
+    def get_count(self, filter_name=None, filter_value=""):
+        return self.get_count_by_project(filter_name=filter_name,
+                                         filter_value=filter_value)
 
     def get_count_by_project(self, filter_name=None, filter_value="", project_name=None):
         with self._dao_context_mngr.context() as context:

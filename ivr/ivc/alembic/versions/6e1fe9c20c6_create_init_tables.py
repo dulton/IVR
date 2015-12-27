@@ -39,6 +39,7 @@ def upgrade():
     sa.Column('long_desc', sa.String(length=1024, convert_unicode=True), server_default=u'', nullable=False),
     sa.Column('cellphone', sa.String(length=32, convert_unicode=True), server_default=u'', nullable=False),
     sa.Column('email', sa.String(length=64, convert_unicode=True), server_default=u'', nullable=False),
+    sa.Column('flags', sa.Integer(), server_default=sa.text(u'0'), nullable=False),
     sa.Column('ctime', sa.TIMESTAMP(), server_default=sa.text(u'0'), nullable=False),
     sa.Column('utime', sa.TIMESTAMP(), server_default=sa.text(u'CURRENT_TIMESTAMP'), nullable=False),
     sa.Column('ltime', sa.TIMESTAMP(), server_default=sa.text(u'0'), nullable=False),
