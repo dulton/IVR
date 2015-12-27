@@ -29,12 +29,13 @@ class Camera(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
+        now = datetime.datetime.now()
         if ctime is None:
-            self.ctime = datetime.datetime.now()
+            self.ctime = now
         else:
             self.ctime = ctime
         if utime is None:
-            self.utime = datetime.datetime.now()
+            self.utime = now
         else:
             self.utime = utime
 

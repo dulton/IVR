@@ -3,6 +3,7 @@ from __future__ import unicode_literals, division
 import gevent
 from ivr.common.rpc import RPCSession
 from ivr.common.exception import IVRError
+import datetime
 
 import logging
 log = logging.getLogger(__name__)
@@ -12,9 +13,13 @@ class Device(object):
     STATE_OFFLINE = 0
     STATE_ONLINE = 1
 
-    def __init__(self, project_name, uuid, name, type, firmware_model, hardware_model,
-                 flags, is_online, desc, long_desc, media_channel_num,
-                 login_code, login_passwd, longitude, latitude, altitude, ctime, utime, ltime):
+    def __init__(self, project_name, uuid, name="device", type="ivt",
+                 firmware_model="", hardware_model="",
+                 flags=0, is_online=0, desc="", long_desc="",
+                 media_channel_num=0,
+                 login_code="", login_passwd="",
+                 longitude=0.0, latitude=0.0, altitude=0.0,
+                 ctime=None, utime=None, ltime=None):
         self.project_name = project_name
         self.uuid = uuid
         self.name = name
@@ -23,7 +28,10 @@ class Device(object):
         self.is_online = is_online
         self.login_passwd = login_passwd
         self.is_online = is_online
-        self.login_code = login_code
+        if login_code == "":
+            self.login_code = uuid
+        else:
+            self.login_code = login_code
         self.firmware_model = firmware_model
         self.hardware_model = hardware_model
         self.media_channel_num = media_channel_num
@@ -32,9 +40,19 @@ class Device(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
-        self.ctime = ctime
-        self.utime = utime
-        self.ltime = ltime
+        now = datetime.datetime.now()
+        if ctime is None:
+            self.ctime = now
+        else:
+            self.ctime = ctime
+        if utime is None:
+            self.utime = now
+        else:
+            self.utime = utime
+        if ltime is None:
+            self.ltime = now
+        else:
+            self.ltime = ltime
 
     def __str__(self):
         return 'device "{0}" of project "{1}"'.format(self.uuid, self.project_name)
