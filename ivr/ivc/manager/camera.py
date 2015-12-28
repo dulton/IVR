@@ -54,7 +54,7 @@ class Camera(object):
         return target
 
     def __str__(self):
-        return 'camera "{0}" of project "{1}"'.format(self.uuid, self.project_name)
+        return 'camera <{0}> of project <{1}>'.format(self.uuid, self.project_name)
 
 
 class CameraManager(object):
