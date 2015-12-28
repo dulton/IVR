@@ -215,8 +215,8 @@ definitions:
       ctime:
         type: string
         format: dateTime
-        description: ''
+        description: 创建时间
       utime:
         type: string
         format: dateTime
-        description: ''
+        description: 修改时间

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
-
+import datetime
 from ivr.common.exception import IVRError
 
 import logging
@@ -29,8 +29,18 @@ class Camera(object):
         self.longitude = longitude
         self.latitude = latitude
         self.altitude = altitude
-        self.ctime = ctime
-        self.utime = utime
+        if ctime is None or utime is None:
+            now = datetime.datetime.now()
+        else:
+            now = 0
+        if ctime is None:
+            self.ctime = now
+        else:
+            self.ctime = ctime
+        if utime is None:
+            self.utime = now
+        else:
+            self.utime = utime
 
     def is_online(self):
         return self.state == self.STATE_ONLINE
