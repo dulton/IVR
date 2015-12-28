@@ -47,14 +47,17 @@ class DeviceDAO(object):
 
     def get_device_list(self, project_name, start, limit):
         result = []
+        index = 0
         if limit == 0:
             return result
         for d in self._devices:
-            if d.project_name == project_name:
-                if len(result) < limit:
-                    result.append(d)
-                    if len(result) + 1 == limit:
-                        break
+            if len(result) < limit:
+                if d.project_name == project_name:
+                    if index >= start:
+                        result.append(d)
+                    index += 1
+            else:
+                break
         return result
 
     def get_device(self, project_name, device_id):

@@ -126,6 +126,7 @@ parameters:
     in: path
     description: 项目名称
     type: string
+    default: weizhong
     required: true
   camera_id:
     name: camera_id
@@ -141,14 +142,14 @@ parameters:
     required: true
   format:
     name: format
-    in: query
+    in: formData
     description: 媒体流的格式
     required: true
     type: string
     enum: ['hls', 'rtmp']
   quality:
     name: quality
-    in: query
+    in: formData
     description: 媒体流质量
     required: false
     default: ld

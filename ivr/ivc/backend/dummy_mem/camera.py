@@ -56,12 +56,15 @@ class CameraDAO(object):
 
     def get_camera_list(self, project_name, start=0, limit=0):
         result = []
+        index = 0
         if limit == 0:
             return result
         for c in self._cameras:
             if len(result) < limit:
                 if c.project_name == project_name:
-                    result.append(c)
+                    if index >= start:
+                        result.append(c)
+                    index += 1
             else:
                 break
         return result
