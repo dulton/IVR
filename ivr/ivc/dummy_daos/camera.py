@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
 from ivr.ivc.manager.camera import Camera as BaseCamera
-from datetime import datetime
+from ivr.common.exception import IVRError
 
 
 class Camera(BaseCamera):
@@ -79,6 +79,9 @@ class CameraDAO(object):
                 return c
 
     def add(self, camera):
+        for c in self._cameras:
+            if c.uuid == camera.uuid:
+                raise IVRError('Duplicated camera UUID <{0}>'.format(camera.uuid))
         self._cameras.append(camera)
 
     def delete_by_uuid(self, uuid):

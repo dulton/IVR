@@ -1,7 +1,5 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
-import gevent
-from ivr.common.rpc import RPCSession
 from ivr.common.exception import IVRError
 import datetime
 
@@ -58,24 +56,41 @@ class Device(object):
             self.ltime = ltime
 
     def __str__(self):
-        return 'device "{0}" of project "{1}"'.format(self.uuid, self.project_name)
+        return 'device <{0}> of project <{1}>'.format(self.uuid, self.project_name)
 
 
 class DeviceManager(object):
     def __init__(self, device_dao):
-        self._device_dao = device_dao
+        self._dao = device_dao
 
     def get_device(self, project_name, device_id):
-        return self._device_dao.get_device(project_name, device_id)
+        device = self._dao.get_by_uuid(device_id)
+        if device.project_name != project_name:
+            log.warning('Try to access device <{0}> of project <{1}> from project <{1}>'.format(device_id, device.project_name, project_name))
+            device = None
+        return device
+
+    def get_device_count(self, project_name):
+        return self._dao.get_count_by_project(project_name=project_name)
 
     def get_device_list(self, project_name, start, limit):
-        return self._device_dao.get_device_list(project_name, start, limit)
+        return self._dao.get_list_by_project(project_name=project_name, start_index=start, max_number=limit)
 
-    def delete_device(self, project_name, device_id):
-        return self._device_dao.delete_device(project_name, device_id)
+    def add_device(self, project_name, device_id, *args, **kwargs):
+        device = Device(project_name, device_id, *args, **kwargs)
+        self._dao.add(device)
 
-    def update_device(self, device):
-        return self._device_dao.update_device(device)
+    def delete_device(self, project_name, device):
+        if device.project_name != project_name:
+            log.warning('Try to delete device <{0}> of project <{1}> from project <{1}>'.format(device.uuid, device.project_name, project_name))
+            return
+        return self._dao.delete_by_uuid(project_name, device.uuid)
+
+    def update_device(self, project_name, device):
+        if device.project_name != project_name:
+            log.warning('Try to update device <{0}> of project <{1}> from project <{1}>'.format(device.uuid, device.project_name, project_name))
+            return
+        return self._dao.update(device)
 
     def rtmp_publish_stream(self, project_name, device_id, camera_id, stream_id, quality, publish_url):
         pass
