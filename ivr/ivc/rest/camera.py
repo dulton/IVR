@@ -3,7 +3,7 @@ from __future__ import unicode_literals, division
 
 from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
 from ivr.ivc.rest.common import get_params_from_request
-from ivr.common.schema import Schema, Optional, Default, IntVal
+from ivr.common.schema import Schema, Optional, Default, IntVal, Use, BoolVal, StrVal
 
 
 def includeme(config):
@@ -34,9 +34,40 @@ def get_camera_list(request):
     return resp
 
 
+new_camera_request_schema = Schema({
+    'name': StrVal(max_len=255),
+    Optional('desc'): StrVal(max_len=255),
+    Optional('long_desc'): StrVal(max_len=1024),
+    'device_uuid': Use(unicode),
+    'channel_index': IntVal(min=0),
+    'flags': IntVal(),
+    Optional('longitude'): Use(float),
+    Optional('latitude'): Use(float),
+    Optional('altitude'): Use(float),
+})
+
+
+@post_view(route_name='camera_list')
+def new_camera(request):
+    req = get_params_from_request(request, new_camera_request_schema)
+    camera_id = request.registry.camera_mngr.add_camera(project_name=request.matchdict['project_name'], **req)
+    return {'uuid': camera_id}
+
+
 @get_view(route_name='camera')
 def get_camera(request):
     return request.registry.camera_mngr.get_camera(request.matchdict['project_name'],
                                                    request.matchdict['camera_id'])
+
+
+@put_view(route_name='camera')
+def update_camera(request):
+    pass
+
+
+@delete_view(route_name='camera')
+def delete_camera(request):
+    request.registry.camera_mngr.delete_camera(request.matchdict['project_name'],
+                                               request.matchdict['camera_id'])
 
 

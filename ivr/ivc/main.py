@@ -27,7 +27,7 @@ config_schema = Schema({
     'user_session_ttl': IntVal(min=10, max=1800),
     'device_ttl': IntVal(min=10, max=1800),
     Optional('sqlalchemy'): {
-        'url': 'mysql+pymysql://test:123456@192.168.1.63/ivc_test'
+        'url': Use(str)
     },
     Optional('debug'): Default(BoolVal(), default=False),
 })

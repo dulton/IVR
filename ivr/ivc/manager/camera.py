@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
 import datetime
+import uuid
 from ivr.common.exception import IVRError
 
 import logging
@@ -75,9 +76,11 @@ class CameraManager(object):
     def get_camera_count(self, project_name):
         return self._dao.get_count_by_project(project_name=project_name)
 
-    def add_camera(self, project_name, camera_id, *args, **kwargs):
-        camera = Camera(project_name, camera_id, *args, **kwargs)
+    def add_camera(self, project_name, **kwargs):
+        camera_id = unicode(uuid.uuid4())
+        camera = Camera(project_name, camera_id, **kwargs)
         self._dao.add(camera)
+        return camera_id
 
     def delete_camera(self, project_name, camera):
         if project_name != camera.project_name:

@@ -3,9 +3,9 @@ info:
   title: IVC API
   description: IVC的REST接口
   version: 1.0.0
-#host: 121.41.72.231:5001
+host: 121.41.72.231:25001
 #host: 192.168.0.253:15001
-host: 192.168.1.150:9999
+#host: 192.168.1.150:9999
 schemes:
   - http
 basePath: /api/ivc/v1
@@ -52,6 +52,31 @@ paths:
                 description: 摄像头列表
                 items:
                   - $ref: '#/definitions/camera'
+    post:
+      summary: 添加摄像头
+      tags: [Camera]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_name'
+        - $ref: '#/parameters/camera_desc'
+        - $ref: '#/parameters/camera_long_desc'
+        - $ref: '#/parameters/camera_device_uuid'
+        - $ref: '#/parameters/camera_device_channel'
+        - $ref: '#/parameters/camera_flags'
+        - $ref: '#/parameters/longitude'
+        - $ref: '#/parameters/latitude'
+        - $ref: '#/parameters/altitude'
+      responses:
+        '200':
+          description: 新添加摄像头的uuid
+          schema:
+            type: object
+            required:
+              - camera_id
+            properties:
+              camera_id:
+                type: string
+                description: 摄像头ID
   /{project_name}/cameras/{camera_id}:
     get:
       summary: 获取摄像头信息
@@ -141,19 +166,76 @@ parameters:
     required: true
   format:
     name: format
-    in: query
+    in: formData
     description: 媒体流的格式
     required: true
     type: string
     enum: ['hls', 'rtmp']
   quality:
     name: quality
-    in: query
+    in: formData
     description: 媒体流质量
     required: false
     default: ld
     type: string
     enum: ['ld', 'sd', 'hd']
+  camera_name:
+    name: name
+    in: formData
+    description: 摄像头名称
+    required: true
+    type: string
+  camera_desc:
+    name: desc
+    type: string
+    in: formData
+    description: 摄像头描述
+    required: false
+  camera_long_desc:
+    name: long_desc
+    type: string
+    in: formData
+    description: 摄像头详细描述
+    required: false
+  camera_device_uuid:
+    name: device_uuid
+    type: string
+    in: formData
+    description: 摄像头所属设备的uuid
+    required: true
+  camera_device_channel:
+    name: channel_index
+    type: integer
+    in: formData
+    description: 摄像头在所属设备中的通道号
+    required: true
+  camera_flags:
+    name: flags
+    type: integer
+    in: formData
+    description: 摄像头标志位
+    required: true
+  longitude:
+    name: longitude
+    type: number
+    format: float
+    in: formData
+    description: 经度
+    required: false
+  latitude:
+    name: latitude
+    type: number
+    format: float
+    in: formData
+    description: 纬度
+    required: false
+  altitude:
+    name: altitude
+    type: number
+    format: float
+    in: formData
+    description: 海拔
+    required: false
 
 definitions:
   stream:
