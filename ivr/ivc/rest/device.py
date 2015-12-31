@@ -46,7 +46,7 @@ new_device_request_schema = Schema({
     'login_passwd': StrVal(max_len=64),
     Optional('firmware_model'): StrVal(max_len=255),
     Optional('hardware_model'): StrVal(max_len=255),
-    #Optional('media_channel_num'): IntVal(),
+    # Optional('media_channel_num'): IntVal(),
     Optional('desc'): StrVal(max_len=255),
     Optional('long_desc'): StrVal(max_len=1024),
     Optional('longitude'): Use(float),

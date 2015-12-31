@@ -16,6 +16,7 @@ from ivr.ivc.manager.camera import CameraManager
 from ivr.ivc.manager.device_ws import DeviceWSConnectionManager
 from ivr.ivc.manager.session import UserSessionManager
 from ivr.ivc.manager.stream import StreamManager
+from ivr.ivc.manager.project import ProjectManager
 
 config_schema = Schema({
     'rest_listen': Use(str),
@@ -51,8 +52,10 @@ def main():
             from ivr.ivc.daos.sa_dao_context_mngr import AlchemyDaoContextMngr
             from ivr.ivc.daos.sa_camera_dao import SACameraDao
             from ivr.ivc.daos.sa_device_dao import SADeviceDao
+            from ivr.ivc.daos.sa_project_dao import SAProjectDao
             engine = engine_from_config(config['sqlalchemy'], prefix='')
             dao_context_mngr = AlchemyDaoContextMngr(engine)
+            project_dao = SAProjectDao(dao_context_mngr)
             camera_dao = SACameraDao(dao_context_mngr)
             device_dao = SADeviceDao(dao_context_mngr)
             from ivr.ivc.backend.dummy_mem import UserSessionDAO, StreamDAO
@@ -65,6 +68,7 @@ def main():
             user_session_dao = UserSessionDAO()
             device_dao = DeviceDAO()
 
+        project_mngr = ProjectManager(project_dao)
         if not config['ws_listen']:
             from ivr.ivc.manager.device import DummyDeviceManager
             device_mngr = DummyDeviceManager(device_dao)
@@ -88,6 +92,7 @@ def main():
         pyramid_config = Configurator()
         pyramid_config.add_renderer(None, JSON(indent=4, check_circular=True, cls=CustomJSONEncoder))
         pyramid_config.include('ivr.ivc.rest', route_prefix='api/ivc/v1')
+        pyramid_config.registry.project_mngr = project_mngr
         pyramid_config.registry.device_mngr = device_mngr
         pyramid_config.registry.camera_mngr = camera_mngr
         pyramid_config.registry.stream_mngr = stream_mngr
