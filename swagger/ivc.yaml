@@ -89,6 +89,101 @@ paths:
           description: 摄像头信息
           schema:
             $ref: '#/definitions/camera'
+    delete:
+      summary: 移除摄像头
+      tags: [Camera]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+      responses:
+        '200':
+          description: 成功移除摄像头
+  /{project_name}/devices:
+    get:
+      summary: 获取设备列表
+      tags: [Device]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - name: start
+          in: query
+          description: 返回的设备的起始索引
+          required: false
+          type: integer
+          default: 0
+        - name: limit
+          in: query
+          description: 最多返回的设备个数，最大100，最小0
+          required: false
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 0
+      responses:
+        '200':
+          description: 设备列表
+          schema:
+            type: object
+            required:
+              - total
+              - start
+            properties:
+              total:
+                type: integer
+                description: 设备总数
+              start:
+                type: integer
+                description: 设备的起始索引
+              list:
+                type: array
+                description: 设备列表
+                items:
+                  - $ref: '#/definitions/device'
+    post:
+      summary: 添加设备
+      tags: [Device]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_name'
+        - $ref: '#/parameters/camera_desc'
+        - $ref: '#/parameters/camera_long_desc'
+        - $ref: '#/parameters/camera_device_uuid'
+        - $ref: '#/parameters/camera_device_channel'
+        - $ref: '#/parameters/camera_flags'
+        - $ref: '#/parameters/longitude'
+        - $ref: '#/parameters/latitude'
+        - $ref: '#/parameters/altitude'
+      responses:
+        '200':
+          description: 新添加设备的uuid
+          schema:
+            type: object
+            required:
+              - device_id
+            properties:
+              device_id:
+                type: string
+                description: 设备ID
+  /{project_name}/devices/{device_id}:
+    get:
+      summary: 获取设备信息
+      tags: [Device]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/device_id'
+      responses:
+        '200':
+          description: 设备信息
+          schema:
+            $ref: '#/definitions/device'
+    delete:
+      summary: 移除设备
+      tags: [Device]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/device_id'
+      responses:
+        '200':
+          description: 成功移除设备
   /{project_name}/cameras/{camera_id}/sessions:
     post:
       summary: 请求观看媒体流
@@ -156,6 +251,12 @@ parameters:
     name: camera_id
     in: path
     description: 摄像头ID
+    type: string
+    required: true
+  device_id:
+    name: device_id
+    in: path
+    description: 设备ID
     type: string
     required: true
   session_id:
@@ -303,11 +404,88 @@ definitions:
       ctime:
         type: string
         format: dateTime
-        description: ''
+        description: 创建时间
       utime:
         type: string
         format: dateTime
-        description: ''
+        description: 最后修改时间
+  device:
+    type: object
+    required:
+      - project_name
+      - uuid
+      - name
+      - type
+      - flags
+      - media_channel_num
+      - is_online
+      - login_code
+      - login_passwd
+      - desc
+      - longitude
+      - latitude
+      - altitude
+    properties:
+      project_name:
+        type: string
+        description: 设备所属项目名称
+      uuid:
+        type: string
+        description: 设备ID
+      name:
+        type: string
+        description: 设备名称
+      flags:
+        type: integer
+        description: 各种标志位
+      is_online:
+        type: integer
+        description: 是否在线：0离线，1在线
+      login_code:
+        type: string
+        description: 登陆名
+      login_passwd:
+        type: string
+        description: 登陆密码
+      firmware_model:
+        type: string
+        description: 固件版本
+      hardware_model:
+        type: string
+        description: 硬件版本
+      media_channel_num:
+        type: string
+        description: 当前通道个数
+      desc:
+        type: string
+        description: 描述
+      long_desc:
+        type: string
+        description: 长描述
+      longitude:
+        type: number
+        format: float
+        description: 经度
+      latitude:
+        type: number
+        format: float
+        description: 纬度
+      altitude:
+        type: number
+        format: float
+        description: 海拔
+      ctime:
+        type: string
+        format: dateTime
+        description: 创建时间
+      utime:
+        type: string
+        format: dateTime
+        description: 最后修改时间
+      ltime:
+        type: string
+        format: dateTime
+        description: 最后登陆时间
   live_stream:
     type: object
     required:

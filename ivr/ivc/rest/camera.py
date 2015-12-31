@@ -67,7 +67,6 @@ def update_camera(request):
 
 @delete_view(route_name='camera')
 def delete_camera(request):
-    request.registry.camera_mngr.delete_camera(request.matchdict['project_name'],
-                                               request.matchdict['camera_id'])
+    request.registry.camera_mngr.delete_camera_by_id(request.matchdict['project_name'], request.matchdict['camera_id'])
 
 

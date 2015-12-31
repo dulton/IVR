@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division
 from ivr.common.exception import IVRError
 import datetime
+import uuid
 
 import logging
 log = logging.getLogger(__name__)
@@ -25,7 +26,6 @@ class Device(object):
         self.flags = flags
         self.is_online = is_online
         self.login_passwd = login_passwd
-        self.is_online = is_online
         if login_code == "":
             self.login_code = uuid
         else:
@@ -76,7 +76,8 @@ class DeviceManager(object):
     def get_device_list(self, project_name, start, limit):
         return self._dao.get_list_by_project(project_name=project_name, start_index=start, max_number=limit)
 
-    def add_device(self, project_name, device_id, *args, **kwargs):
+    def add_device(self, project_name, *args, **kwargs):
+        device_id = unicode(uuid.uuid4())
         device = Device(project_name, device_id, *args, **kwargs)
         self._dao.add(device)
 
@@ -91,6 +92,15 @@ class DeviceManager(object):
             log.warning('Try to update device <{0}> of project <{1}> from project <{1}>'.format(device.uuid, device.project_name, project_name))
             return
         return self._dao.update(device)
+
+    def delete_device_by_id(self, project_name, device_id):
+        device = self._dao.get_by_uuid(device_id)
+        if device and device.project_name != project_name:
+            log.warning('Try to delete device <{0}> of project <{1}> from project <{1}>'.format(device.uuid, device.project_name, project_name))
+            return
+        elif device:
+            self._dao.delete_by_uuid(device.uuid)
+        return device
 
     def rtmp_publish_stream(self, project_name, device_id, camera_id, stream_id, quality, publish_url):
         pass

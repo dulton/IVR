@@ -88,6 +88,7 @@ def main():
         pyramid_config = Configurator()
         pyramid_config.add_renderer(None, JSON(indent=4, check_circular=True, cls=CustomJSONEncoder))
         pyramid_config.include('ivr.ivc.rest', route_prefix='api/ivc/v1')
+        pyramid_config.registry.device_mngr = device_mngr
         pyramid_config.registry.camera_mngr = camera_mngr
         pyramid_config.registry.stream_mngr = stream_mngr
         pyramid_config.registry.user_session_mngr = user_session_mngr

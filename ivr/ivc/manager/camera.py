@@ -88,6 +88,15 @@ class CameraManager(object):
             return
         self._dao.delete_by_uuid(camera.uuid)
 
+    def delete_camera_by_id(self, project_name, camera_id):
+        camera = self._dao.get_by_uuid(camera_id)
+        if camera and camera.project_name != project_name:
+            log.warning('Try to delete camera <{0}> of project <{1}> from project <{1}>'.format(camera.uuid, camera.project_name, project_name))
+            return
+        elif camera:
+            self._dao.delete_by_uuid(camera.uuid)
+        return camera
+
     def on_camera_offline(self, camera_id):
         pass
 
