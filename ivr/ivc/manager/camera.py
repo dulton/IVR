@@ -23,7 +23,7 @@ class Camera(object):
         self.device_uuid = device_uuid
         self.channel_index = channel_index
         self.flags = flags
-        self.is_online = is_online
+        self.is_online = is_online    # 0: offline  1: online   2: broadcast
         self.name = name
         self.desc = desc
         self.long_desc = long_desc

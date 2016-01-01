@@ -6,6 +6,8 @@ import datetime
 
 
 class User(object):
+    USER_FLAG_PRIVILEGE = 0x1
+
 
     def __init__(self, username, password="", title="default", desc="", long_desc="",
                  flags=0, cellphone="", email="",
@@ -38,3 +40,69 @@ class User(object):
     def __str__(self):
         return 'User "{0}"'.format(self.username)
 
+
+class UserManager(object):
+    def __init__(self, user_dao=None, dao_context_mngr=None):
+        self._user_dao =user_dao
+        self._dao_context_mngr =dao_context_mngr
+
+    def get_user_list_in_pages(self, filter_name=None, filter_value="", start_index=0, max_number=65535):
+        with self._dao_context_mngr.context():
+            user_list = self._user_dao.get_list(
+                filter_name=filter_name,
+                filter_value=filter_value,
+                start_index=start_index,
+                max_number=max_number)
+            user_total_count = self._user_dao.get_count(
+                filter_name=filter_name,
+                filter_value=filter_value)
+        return user_total_count, user_list
+
+    def get_user_list_in_project(self, project_name,
+                                    filter_name=None, filter_value=""):
+        with self._dao_context_mngr.context():
+            return self._user_dao.get_list_by_project(
+                project_name=project_name,
+                filter_name=filter_name,
+                filter_value=filter_value)
+
+    def get_user(self, username):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is None:
+                raise IVRError("User Not Found", 404)
+        return user
+
+    def add_user(self, username, is_privilege=False, **kwargs):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is not None:
+                raise IVRError("Username Exist", 400)
+            user = User(username, **kwargs)
+            if is_privilege:
+                user.flags |= User.USER_FLAG_PRIVILEGE
+            else:
+                user.flags &= ~User.USER_FLAG_PRIVILEGE
+            self._user_dao.add(user)
+
+    def mod_user(self, username,  **kwargs):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is None:
+                raise IVRError("User Not Found", 404)
+            for (k, v) in kwargs.items():
+                if k in ("password", "title", "desc", "long_desc", "cellphone", "email"):
+                    setattr(user, k, v)
+            user.utime = datetime.datetime.now()
+            self._user_dao.update(user)
+
+    def delete_user_by_name(self, username):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is not None:
+                raise IVRError("Username Not Found", 400)
+            self._user_dao.delete_by_username(username)
+
+    def login(self, username, password):
+        # return a JWT for this user with the privilege
+        pass
