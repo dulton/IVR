@@ -3,6 +3,7 @@ from __future__ import unicode_literals, division
 import sys
 import traceback
 import copy
+import datetime
 import json
 import inspect
 
@@ -157,6 +158,8 @@ class CustomJSONEncoder(json.JSONEncoder):
         except TypeError:
             if isinstance(o, set):
                 return list(o)
+            elif isinstance(o, datetime.datetime):
+                return str(o)
             elif hasattr(o, '__json__'):
                 return o.__json__()
             elif hasattr(o, '__dict__'):
