@@ -7,5 +7,5 @@ stream_ttl: 60
 user_session_ttl: 20
 device_ttl: 30
 sqlalchemy:
-  url: 'mysql+pymysql://test:123456@192.168.1.63/ivc_test'
+  url: 'mysql+pymysql://test:123456@192.168.1.63/ivc_test?charset=utf8'
 debug: True
