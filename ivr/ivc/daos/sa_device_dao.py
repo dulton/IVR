@@ -44,7 +44,7 @@ class SADeviceDao(object):
     def get_count(self, filter_name=None, filter_value=""):
         return self.get_count_by_project(filter_name=filter_name, filter_value=filter_value,
                                          project_name=None)
-    
+
     def get_count_by_project(self, filter_name=None, filter_value="", project_name=None):
         with self._dao_context_mngr.context() as context:
             # in a transaction

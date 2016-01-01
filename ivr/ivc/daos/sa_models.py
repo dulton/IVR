@@ -43,7 +43,7 @@ class SACamera(Base):
                           ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
                           nullable=False, server_default="")
     flags = Column(Integer, nullable=False, server_default=text("0"))
-    is_online = Column(SmallInteger, nullable=False, server_default=text("0"))
+    is_online = Column(SmallInteger, nullable=False, server_default=text("0"))     # 0: offline  1: online   2: broadcast
     ctime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
 
