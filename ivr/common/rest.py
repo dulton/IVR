@@ -18,7 +18,7 @@ from ivr.common.exception import IVRError
 class PrefligthHandlerFactory(object):
     def __init__(self, route_name, request_method):
         self.route_name = route_name
-        self.allow_methods = set([request_method, ])
+        self.allow_methods = set(request_method,)
         self._allow_methods_header = request_method
 
     def add_method(self, request_method):
