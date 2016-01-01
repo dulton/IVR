@@ -293,7 +293,7 @@ paths:
       responses:
         '200':
           description: 成功创建项目
-  /_admin_/project/{project_name}:
+  /_admin_/projects/{project_name}:
     get:
       summary: 获取项目信息
       tags: [Project]

@@ -40,7 +40,7 @@ def get_device_list(request):
 
 
 new_device_request_schema = Schema({
-    'name': StrVal(max_len=64),
+    'project_name': StrVal(max_len=64),
     'title': StrVal(max_len=255),
     'max_media_sessions': IntVal(),
     Optional('desc'): StrVal(max_len=255),
@@ -53,7 +53,7 @@ def new_project(request):
     if request.matchdict['admin'] != '_admin_':
         raise IVRError('Not allowed')
     req = get_params_from_request(request, new_device_request_schema)
-    request.registry.project_mngr.add_project(project_name=request.matchdict['project_name'], **req)
+    request.registry.project_mngr.add_project(project_name=req.pop('project_name'), **req)
 
 
 @get_view(route_name='project')

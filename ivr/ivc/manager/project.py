@@ -38,6 +38,7 @@ class ProjectManager(object):
 
     def add_project(self, project_name, *args, **kwargs):
         project = Project(project_name, *args, **kwargs)
+        print project.__dict__
         self._dao.add(project)
 
     def delete_project(self, project):
