@@ -38,10 +38,16 @@ class ProjectManager(object):
 
     def add_project(self, project_name, *args, **kwargs):
         project = Project(project_name, *args, **kwargs)
+        print project.__dict__
         self._dao.add(project)
 
     def delete_project(self, project):
         self._dao.delete_by_name(project.name)
+
+    def delete_project_by_name(self, project_name):
+        project = self._dao.get_by_name(project_name)
+        if project:
+            self._dao.delete_by_name(project_name)
 
     def get_project(self, project_name):
         return self._dao.get_by_name(project_name)

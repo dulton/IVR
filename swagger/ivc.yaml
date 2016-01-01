@@ -58,8 +58,8 @@ paths:
       parameters:
         - $ref: '#/parameters/project_name'
         - $ref: '#/parameters/camera_name'
-        - $ref: '#/parameters/camera_desc'
-        - $ref: '#/parameters/camera_long_desc'
+        - $ref: '#/parameters/desc'
+        - $ref: '#/parameters/long_desc'
         - $ref: '#/parameters/camera_device_uuid'
         - $ref: '#/parameters/camera_device_channel'
         - $ref: '#/parameters/camera_flags'
@@ -143,12 +143,15 @@ paths:
       tags: [Device]
       parameters:
         - $ref: '#/parameters/project_name'
-        - $ref: '#/parameters/camera_name'
-        - $ref: '#/parameters/camera_desc'
-        - $ref: '#/parameters/camera_long_desc'
-        - $ref: '#/parameters/camera_device_uuid'
-        - $ref: '#/parameters/camera_device_channel'
-        - $ref: '#/parameters/camera_flags'
+        - $ref: '#/parameters/device_name'
+        - $ref: '#/parameters/device_type'
+        - $ref: '#/parameters/device_flags'
+        - $ref: '#/parameters/device_login_code'
+        - $ref: '#/parameters/device_login_passwd'
+        - $ref: '#/parameters/device_firmware_model'
+        - $ref: '#/parameters/device_hardware_model'
+        - $ref: '#/parameters/desc'
+        - $ref: '#/parameters/long_desc'
         - $ref: '#/parameters/longitude'
         - $ref: '#/parameters/latitude'
         - $ref: '#/parameters/altitude'
@@ -239,6 +242,76 @@ paths:
       responses:
         '200':
           description: 成功接收结束观看请求
+  /_admin_/projects:
+    get:
+      summary: 获取项目列表
+      tags: [Project]
+      parameters:
+        - name: start
+          in: query
+          description: 返回项目的起始索引
+          required: false
+          type: integer
+          default: 0
+        - name: limit
+          in: query
+          description: 最多返回的项目个数，最大100，最小0
+          required: false
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 0
+      responses:
+        '200':
+          description: 项目列表
+          schema:
+            type: object
+            required:
+              - total
+              - start
+            properties:
+              total:
+                type: integer
+                description: 项目总数
+              start:
+                type: integer
+                description: 项目的起始索引
+              list:
+                type: array
+                description: 项目列表
+                items:
+                  - $ref: '#/definitions/project'
+    post:
+      summary: 创建项目
+      tags: [Project]
+      parameters:
+        - $ref: '#/parameters/project_name_in_form'
+        - $ref: '#/parameters/project_title'
+        - $ref: '#/parameters/project_max_media_sessions'
+        - $ref: '#/parameters/desc'
+        - $ref: '#/parameters/long_desc'
+      responses:
+        '200':
+          description: 成功创建项目
+  /_admin_/projects/{project_name}:
+    get:
+      summary: 获取项目信息
+      tags: [Project]
+      parameters:
+        - $ref: '#/parameters/project_name'
+      responses:
+        '200':
+          description: 项目信息
+          schema:
+            $ref: '#/definitions/project'
+    delete:
+      summary: 删除项目
+      tags: [Project]
+      parameters:
+        - $ref: '#/parameters/project_name'
+      responses:
+        '200':
+          description: 成功删除项目
 
 parameters:
   project_name:
@@ -286,18 +359,6 @@ parameters:
     description: 摄像头名称
     required: true
     type: string
-  camera_desc:
-    name: desc
-    type: string
-    in: formData
-    description: 摄像头描述
-    required: false
-  camera_long_desc:
-    name: long_desc
-    type: string
-    in: formData
-    description: 摄像头详细描述
-    required: false
   camera_device_uuid:
     name: device_uuid
     type: string
@@ -316,6 +377,78 @@ parameters:
     in: formData
     description: 摄像头标志位
     required: true
+  device_name:
+    name: name
+    type: integer
+    in: formData
+    description: 设备名称
+    required: true
+  device_type:
+    name: type
+    type: integer
+    in: formData
+    description: 设备类型
+    required: true
+  device_flags:
+    name: flags
+    type: integer
+    in: formData
+    description: 设备标志位
+    required: true
+  device_login_code:
+    name: login_code
+    type: string
+    in: formData
+    description: 设备登陆名
+    required: false
+  device_login_passwd:
+    name: login_passwd
+    type: string
+    in: formData
+    description: 设备登陆密码
+    required: true
+  device_firmware_model:
+    name: firmware_model
+    type: string
+    in: formData
+    description: 设备固件
+    required: false
+  device_hardware_model:
+    name: hardware_model
+    type: string
+    in: formData
+    description: 设备硬件
+    required: false
+  project_name_in_form:
+    name: project_name
+    in: formData
+    description: 项目名称
+    type: string
+    required: true
+  project_title:
+    name: title
+    type: string
+    in: formData
+    description: 项目标题
+    required: true
+  project_max_media_sessions:
+    name: max_media_sessions
+    type: integer
+    in: formData
+    description: 最大允许的媒体流并发数
+    required: true
+  desc:
+    name: desc
+    type: string
+    in: formData
+    description: 描述
+    required: false
+  long_desc:
+    name: long_desc
+    type: string
+    in: formData
+    description: 详细描述
+    required: false
   longitude:
     name: longitude
     type: number
@@ -435,6 +568,9 @@ definitions:
       name:
         type: string
         description: 设备名称
+      type:
+        type: string
+        description: 设备类型
       flags:
         type: integer
         description: 各种标志位
@@ -461,7 +597,7 @@ definitions:
         description: 描述
       long_desc:
         type: string
-        description: 长描述
+        description: 详细描述
       longitude:
         type: number
         format: float
@@ -486,6 +622,36 @@ definitions:
         type: string
         format: dateTime
         description: 最后登陆时间
+  project:
+    type: object
+    required:
+      - name
+      - title
+      - max_media_sessions
+    properties:
+      name:
+        type: string
+        description: 项目名称
+      title:
+        type: string
+        description: 项目标题
+      max_media_sessions:
+        type: integer
+        description: 最大允许的媒体流并发数
+      desc:
+        type: string
+        description: 描述
+      long_desc:
+        type: string
+        description: 详细描述
+      ctime:
+        type: string
+        format: dateTime
+        description: 创建时间
+      utime:
+        type: string
+        format: dateTime
+        description: 最后修改时间
   live_stream:
     type: object
     required:

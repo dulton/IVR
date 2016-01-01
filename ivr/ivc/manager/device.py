@@ -80,6 +80,7 @@ class DeviceManager(object):
         device_id = unicode(uuid.uuid4())
         device = Device(project_name, device_id, *args, **kwargs)
         self._dao.add(device)
+        return device_id
 
     def delete_device(self, project_name, device):
         if device.project_name != project_name:
