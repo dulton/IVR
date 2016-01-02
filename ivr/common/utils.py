@@ -15,6 +15,7 @@ import sys
 import shutil
 import functools
 import base64
+import datetime
 
 if sys.version_info[:2] < (3, 3):
     from distutils.spawn import find_executable
@@ -40,7 +41,9 @@ class CustomJSONEncoder(json.JSONEncoder):
         if isinstance(o, bytes):
             o = base64.b64encode(o).decode()
             return o
-        if isinstance(o, set):
+        elif isinstance(o, datetime.datetime):
+            return STRING(o)
+        elif isinstance(o, set):
             return list(o)
         elif hasattr(o, '__json__'):
             return o.__json__()
@@ -52,7 +55,6 @@ class CustomJSONEncoder(json.JSONEncoder):
             return obj_dict
         else:
             return json.JSONEncoder.default(self, o)
-
 
 
 def encode_json(o):
