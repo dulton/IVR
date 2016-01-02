@@ -266,9 +266,7 @@ class SAUser(Base):
                         ltime=self.ltime)
 
 
-class SAUserSessionLog(Base):
-    """ The SQLAlchemy declarative model class for a camera object. """
-    __tablename__ = 'sessionlog'
+
 
 
 

@@ -58,7 +58,7 @@ def main():
             project_dao = SAProjectDao(dao_context_mngr)
             camera_dao = SACameraDao(dao_context_mngr)
             device_dao = SADeviceDao(dao_context_mngr)
-            from ivr.ivc.backend.dummy_mem import UserSessionDAO, StreamDAO
+            from ivr.ivc.dummy_daos import UserSessionDAO, StreamDAO
             stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
         else:
@@ -88,7 +88,7 @@ def main():
         # prepare REST API
         from pyramid.config import Configurator
         from pyramid.renderers import JSON
-        from ivr.common.rest import CustomJSONEncoder
+        from ivr.common.utils import CustomJSONEncoder
         pyramid_config = Configurator()
         pyramid_config.add_renderer(None, JSON(indent=4, check_circular=True, cls=CustomJSONEncoder))
         pyramid_config.include('ivr.ivc.rest', route_prefix='api/ivc/v1')
