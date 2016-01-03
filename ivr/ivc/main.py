@@ -17,6 +17,7 @@ from ivr.ivc.manager.device_ws import DeviceWSConnectionManager
 from ivr.ivc.manager.session import UserSessionManager
 from ivr.ivc.manager.stream import StreamManager
 from ivr.ivc.manager.project import ProjectManager
+from ivr.ivc.manager.user import UserManager
 
 config_schema = Schema({
     'rest_listen': Use(str),
@@ -53,11 +54,13 @@ def main():
             from ivr.ivc.daos.sa_camera_dao import SACameraDao
             from ivr.ivc.daos.sa_device_dao import SADeviceDao
             from ivr.ivc.daos.sa_project_dao import SAProjectDao
+            from ivr.ivc.daos.sa_user_dao import SAUserDao
             engine = engine_from_config(config['sqlalchemy'], prefix='')
             dao_context_mngr = AlchemyDaoContextMngr(engine)
             project_dao = SAProjectDao(dao_context_mngr)
             camera_dao = SACameraDao(dao_context_mngr)
             device_dao = SADeviceDao(dao_context_mngr)
+            user_dao = SAUserDao(dao_context_mngr)
             from ivr.ivc.dummy_daos import UserSessionDAO, StreamDAO
             stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
@@ -67,6 +70,7 @@ def main():
             stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
             device_dao = DeviceDAO()
+            user_dao = None
 
         project_mngr = ProjectManager(project_dao)
         if not config['ws_listen']:
@@ -85,6 +89,8 @@ def main():
                                                stream_mngr,
                                                config['user_session_ttl'])
 
+        user_mngr = UserManager(user_dao, project_dao, dao_context_mngr)
+
         # prepare REST API
         from pyramid.config import Configurator
         from pyramid.renderers import JSON
@@ -97,6 +103,7 @@ def main():
         pyramid_config.registry.camera_mngr = camera_mngr
         pyramid_config.registry.stream_mngr = stream_mngr
         pyramid_config.registry.user_session_mngr = user_session_mngr
+        pyramid_config.registry.user_mngr = user_mngr
         if config.get('debug'):
             pyramid_config.add_settings({'debugtoolbar.hosts': ['0.0.0.0/0', '::1'],
                                  'debugtoolbar.enabled': True,

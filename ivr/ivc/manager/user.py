@@ -40,10 +40,19 @@ class User(object):
     def __str__(self):
         return 'User "{0}"'.format(self.username)
 
+    def __json__(self):
+        obj_dict = {}
+        for k, v in self.__dict__.items():
+            if not k.startswith('_'):
+                obj_dict[k] = v
+        obj_dict.pop("password")
+        return obj_dict
+
 
 class UserManager(object):
-    def __init__(self, user_dao=None, dao_context_mngr=None):
-        self._user_dao =user_dao
+    def __init__(self, user_dao=None, project_dao=None, dao_context_mngr=None):
+        self._user_dao = user_dao
+        self._project_dao = project_dao
         self._dao_context_mngr =dao_context_mngr
 
     def get_user_list_in_pages(self, filter_name=None, filter_value="", start_index=0, max_number=65535):
@@ -59,12 +68,21 @@ class UserManager(object):
         return user_total_count, user_list
 
     def get_user_list_in_project(self, project_name,
-                                    filter_name=None, filter_value=""):
+                                    filter_name=None, filter_value="",
+                                     start_index=0, max_number=65535):
         with self._dao_context_mngr.context():
-            return self._user_dao.get_list_by_project(
+
+            user_list = self._user_dao.get_list_by_project(
+                project_name=project_name,
+                filter_name=filter_name,
+                filter_value=filter_value,
+                start_index=start_index,
+                max_number=max_number)
+            user_total_count = self._user_dao.get_count_by_project(
                 project_name=project_name,
                 filter_name=filter_name,
                 filter_value=filter_value)
+        return user_total_count, user_list
 
     def get_user(self, username):
         with self._dao_context_mngr.context():
@@ -84,6 +102,7 @@ class UserManager(object):
             else:
                 user.flags &= ~User.USER_FLAG_PRIVILEGE
             self._user_dao.add(user)
+        return user
 
     def mod_user(self, username,  **kwargs):
         with self._dao_context_mngr.context():
@@ -99,9 +118,45 @@ class UserManager(object):
     def delete_user_by_name(self, username):
         with self._dao_context_mngr.context():
             user = self._user_dao.get_by_username(username)
-            if user is not None:
-                raise IVRError("Username Not Found", 400)
+            if user is None:
+                raise IVRError("Username Not Found", 404)
             self._user_dao.delete_by_username(username)
+
+    def get_user_projects(self, username):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is None:
+                raise IVRError("Username Not Found", 404)
+            return self._user_dao.get_user_projects(user)
+
+    def join_to_project(self, username, project_name):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is not None:
+                raise IVRError("Username Not Found", 404)
+
+            user_projects = self._user_dao.get_user_projects(user)
+            for user_project in user_projects:
+                if user_project.name == project_name:
+                    raise IVRError("Already in Project", 400)
+
+            project = self._project_dao.get_by_name(project_name)
+            if project is None:
+                raise IVRError("Project(%s) Not Found" % project_name, 404)
+            self._user_dao.join_to_project(user, project)
+
+    def leave_from_project(self, username, project_name):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is not None:
+                raise IVRError("Username Not Found", 404)
+            user_projects = self._user_dao.get_user_projects(user)
+            for user_project in user_projects:
+                if user_project.name == project_name:
+                    break
+            else:
+                raise IVRError("Not In Project", 400)
+            self._user_dao.leave_from_project(user, user_project)
 
     def login(self, username, password):
         # return a JWT for this user with the privilege
