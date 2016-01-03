@@ -53,7 +53,7 @@ class SAUserDao(object):
             query = session.query(SAUser)
             if project_name is not None:
                 query = query.filter(SAUser.projects.any(SAProject.name == project_name))
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SAUser, filter_name).like("%"+filter_value+"%"))
             cnt = query.count()
         return cnt

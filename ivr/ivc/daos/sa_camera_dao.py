@@ -33,7 +33,7 @@ class SACameraDao(object):
             query = session.query(SACamera)
             if project_name is not None:
                 query = query.filter(SACamera.project_name == project_name)
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SACamera, filter_name).like("%"+filter_value+"%"))
             for sa_camera in query[start_index:max_number]:
                 camera = sa_camera.to_camera(Camera)
@@ -51,7 +51,7 @@ class SACameraDao(object):
             query = session.query(SACamera)
             if project_name is not None:
                 query = query.filter(SACamera.project_name == project_name)
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SACamera, filter_name).like("%"+filter_value+"%"))
             cnt = query.count()
         return cnt

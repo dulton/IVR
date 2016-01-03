@@ -34,7 +34,7 @@ class SADeviceDao(object):
             query = session.query(SADevice)
             if project_name is not None:
                 query = query.filter(SADevice.project_name == project_name)
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SADevice, filter_name).like("%"+filter_value+"%"))
             for sa_device in query[start_index:max_number]:
                 device = sa_device.to_device(SADevice)
@@ -52,7 +52,7 @@ class SADeviceDao(object):
             query = session.query(SADevice)
             if project_name is not None:
                 query = query.filter(SADevice.project_name == project_name)
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SADevice, filter_name).like("%"+filter_value+"%"))
             cnt = query.count()
         return cnt

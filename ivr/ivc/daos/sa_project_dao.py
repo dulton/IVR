@@ -25,7 +25,7 @@ class SAProjectDao(object):
             # in a transaction
             session = context.session
             query = session.query(SAProject)
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SAProject, filter_name).like("%"+filter_value+"%"))
             for sa_project in query[start_index:max_number]:
                 project = sa_project.to_project(Project)
@@ -37,7 +37,7 @@ class SAProjectDao(object):
             # in a transaction
             session = context.session
             query = session.query(SAProject)
-            if filter_name is not None:
+            if filter_name is not None and len(filter_name) != 0 and len(filter_value) != 0:
                 query = query.filter(getattr(SAProject, filter_name).like("%"+filter_value+"%"))
             cnt = query.count()
         return cnt
