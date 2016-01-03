@@ -1,10 +1,12 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
 import gevent
+import datetime
 import time
 from ivr.common.rpc import RPCSession
 from device import DeviceManager
 from ivr.common.exception import IVRError
+from ivr.common.schema import Schema, STRING, Use
 
 import logging
 log = logging.getLogger(__name__)
@@ -31,7 +33,7 @@ class DeviceConn(RPCSession):
         self._greenlet_chk_ttl.kill()
 
     def __str__(self):
-        return 'device "{0}" of project "{1}"'.format(self._id, self._project_name)
+        return 'connection with device <{0}> of project <{1}>'.format(self._id, self._project_name)
 
     def _chk_ttl(self):
         while True:
@@ -46,7 +48,8 @@ class DeviceConn(RPCSession):
 
     def event_keepalive(self, params):
         # handle keepalive event with states of channels/cameras
-        pass
+        self._last_keepalive = time.time()
+        self._conn_mngr.device_keepalive(self._device_id, params)
 
     def rtmp_publish_stream(self, camera_id, quality, publish_url, stream_id):
         self._send_request('RTMPPublish', {'camera_id': camera_id,
@@ -61,27 +64,61 @@ class DeviceConn(RPCSession):
 
 class DeviceWSConnectionManager(DeviceManager):
 
+    login_params_schema = Schema({'project': Use(STRING),
+                                  'login_code': Use(STRING),
+                                  'login_passwd': Use(STRING)})
+
     def __init__(self, device_dao, device_ttl):
         super(DeviceWSConnectionManager, self).__init__(device_dao)
         self._device_ttl = device_ttl
         self._device_connections = {}
 
     def device_online(self, transport, params):
-        project_name = params.get('project')
-        device_id = params.get('uuid')
-        if not device_id:
-            raise Exception('No device ID is given')
-        device = self.get_device(project_name, device_id)
+        params = self.login_params_schema.validate(params)
+        project_name = params['project']
+        login_code = params['login_code']
+        login_passwd = params['login_passwd']
+        device = self._dao.get_by_login_code(login_code)
         if not device:
-            raise IVRError('Device "{0}" of project "{1}" not recognized'.format(device_id, project_name))
-        device_conn = DeviceConn(project_name, device_id, transport)
-        self._device_connections[device_id] = device_conn
+            raise IVRError('Unknown device <{0}> try to login: {1}'.format(login_code, params))
+        if device.project_name != project_name:
+            raise IVRError('Device <{0}> of project <{1}> attampts to login as project <{2}> device'.format(login_code, device.project_name, project_name))
+        if device.login_passwd != login_passwd:
+            raise IVRError('Device login failed with wrong password: {0}'.format(params))
+        device_conn = DeviceConn(self, project_name, device.uuid, transport, self._device_ttl)
+        old_device_conn = self._device_connections.pop(device.uuid, None)
+        if old_device_conn:
+            log.warning('There is old {0}, disconnect it first'.format(old_device_conn))
+            try:
+                old_device_conn.force_shutdown()
+            except Exception:
+                log.exception('failed to force shutdown {0}'.format(old_device_conn))
+        self._device_connections[device.uuid] = device_conn
         device.state = device.STATE_ONLINE
-        self.update_device(device)
+        device.ltime = datetime.datetime.now()
+        self._dao.update(device)
         return device_conn
+
+    def device_keepalive(self, device_id, params):
+        device_conn = self._device_connections.get(device_id)
+        if not device_conn:
+            log.error('BUG: device connection not found for keepalive device <{0}>'.format(device_id))
+        device = self._dao.get_by_uuid(device_id)
+        if not device:
+            self._device_connections.pop(device_id, None)
+            try:
+                device_conn.force_shutdown()
+            except Exception:
+                log.exception('Failed to force shutdown {0}'.format(device_conn))
+            raise IVRError('Unkonw device for {0}'.format(device_conn))
+        device.is_online = device.STATE_ONLINE
+        device.ltime = datetime.datetime.now()
+        self._dao.update(device)
+        for channel, is_online in params.iteritems():
+            self._camera_mngr.set_camera_state_by_device_channel(device.project_name, device.uuid, channel, is_online)
 
     def conn_closed_cbk(self, conn):
         self._device_connections.pop(conn.uuid, None)
         device = self.get_device(conn.project_name, conn.device_id)
-        device.state = device.STATE_OFFLINE
+        device.is_online = device.STATE_ONLINE
         self.update_device(device)

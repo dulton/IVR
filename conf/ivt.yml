@@ -1,13 +1,15 @@
 ivc: ws://127.0.0.1:5000/ivc
-id: ivt1
-camera:
+project: jiguang
+login_code: ivt1
+login_passwd: passwd
+keepalive_interval: 20  # send keepalive to IVC every x seconds
+cameras:
   - type: rtsp
-    project: jiguang
-    id: c1
+    channel: 0
     streams:
       - type: rtsp
-        quality: high
+        quality: hd
         url: rtsp://192.168.2.100:554/user=admin&password=123456&id=1&type=0
       - type: rtsp
-        quality: low
+        quality: ld
         url: rtsp://192.168.2.100:554/user=admin&password=123456&id=1&type=1

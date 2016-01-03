@@ -60,8 +60,12 @@ class Device(object):
 
 
 class DeviceManager(object):
-    def __init__(self, device_dao):
+    def __init__(self, device_dao, camera_mngr=None):
         self._dao = device_dao
+        self._camera_mngr = camera_mngr
+
+    def set_camera_mngr(self, camera_mngr):
+        self._camera_mngr = camera_mngr
 
     def get_device(self, project_name, device_id):
         device = self._dao.get_by_uuid(device_id)

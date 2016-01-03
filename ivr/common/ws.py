@@ -8,6 +8,7 @@ from ws4py.server.geventserver import WSGIServer
 from ws4py.server.wsgiutils import WebSocketWSGIApplication
 from ws4py.websocket import WebSocket
 from ws4py.client.geventclient import WebSocketClient
+from ivr.common.utils import STRING
 
 import logging
 log = logging.getLogger(__name__)
@@ -50,7 +51,7 @@ class WSClientTransport(WebSocketClient):
 
     def received_message(self, message):
         log.debug("Received message {0}".format(message))
-        self._app.on_received_packet(str(message))
+        self._app.on_received_packet(STRING(message))
 
     def send_packet(self, data):
         log.debug("Sending message {0}".format(data))
@@ -108,7 +109,7 @@ class WSServerTransport(WebSocket):
 
     def received_message(self, message):
         log.debug("Received message {0}".format(message))
-        self._app.on_received_packet(str(message))
+        self._app.on_received_packet(STRING(message))
 
     def send_packet(self, data):
         log.debug("Sending message {0}".format(data))

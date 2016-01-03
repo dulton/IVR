@@ -18,6 +18,16 @@ class SACameraDao(object):
             camera = sa_camera.to_camera(Camera)
         return camera
 
+    def get_by_device_channel(self, device_uuid, channel_index):
+        with self._dao_context_mngr.context() as context:
+            # in a transaction
+            session = context.session
+            sa_camera = session.query(SACamera).filter(SACamera.device_uuid == device_uuid).filter(SACamera.channel_index == channel_index).one_or_none()
+            if sa_camera is None:
+                return None
+            camera = sa_camera.to_camera(Camera)
+        return camera
+
     def get_list(self, filter_name=None, filter_value="",
                  start_index=0, max_number=65535):
         return self.get_list_by_project(filter_name=filter_name, filter_value=filter_value,

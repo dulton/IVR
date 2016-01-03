@@ -12,6 +12,7 @@ from ivr.common.logger import default_config as default_log_config
 from ivr.common.ws import WSServer
 from ivr.common.schema import Schema, Use, IntVal, Default, Optional, BoolVal
 from ivr.common.confparser import parse as parse_conf
+from ivr.common.utils import STRING
 from ivr.ivc.manager.camera import CameraManager
 from ivr.ivc.manager.device_ws import DeviceWSConnectionManager
 from ivr.ivc.manager.session import UserSessionManager
@@ -20,16 +21,16 @@ from ivr.ivc.manager.project import ProjectManager
 from ivr.ivc.manager.user import UserManager
 
 config_schema = Schema({
-    'rest_listen': Use(str),
-    'ws_listen': Use(str),
-    'rtmp_publish_url_prefix': Use(str),
-    'rtmp_url_prefix': Use(str),
-    'hls_url_prefix': Use(str),
+    'rest_listen': Use(STRING),
+    'ws_listen': Use(STRING),
+    'rtmp_publish_url_prefix': Use(STRING),
+    'rtmp_url_prefix': Use(STRING),
+    'hls_url_prefix': Use(STRING),
     'stream_ttl': IntVal(min=10, max=1800),
     'user_session_ttl': IntVal(min=10, max=1800),
     'device_ttl': IntVal(min=10, max=1800),
     Optional('sqlalchemy'): {
-        'url': Use(str)
+        'url': Use(STRING)
     },
     Optional('debug'): Default(BoolVal(), default=False),
 })
@@ -41,7 +42,7 @@ def main():
     log = logging.getLogger(__name__)
 
     try:
-        if (sys.argv) == 2:
+        if len(sys.argv) == 2:
             config = parse_conf(sys.argv[1])
         else:
             config = parse_conf('ivc.yml')
@@ -79,6 +80,7 @@ def main():
         else:
             device_mngr = DeviceWSConnectionManager(device_dao, config['device_ttl'])
         camera_mngr = CameraManager(camera_dao, device_mngr)
+        device_mngr.set_camera_mngr(camera_mngr)
         stream_mngr = StreamManager(stream_dao,
                                     camera_mngr,
                                     config['rtmp_publish_url_prefix'],
