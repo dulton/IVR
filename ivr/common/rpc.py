@@ -4,6 +4,7 @@ import json
 from gevent.queue import Queue
 from gevent.lock import RLock
 from ivr.common.exception import IVRError
+from ivr.common.utils import STRING
 
 import logging
 log = logging.getLogger(__name__)
@@ -114,7 +115,7 @@ class RPCSession(object):
                     result = m()
                 msg = {'seq': msg['seq'], 'resp': result}
             except Exception as e:
-                msg = {'err': {'code': -1, 'msg': str(e)}}
+                msg = {'err': {'code': -1, 'msg': STRING(e)}}
             self._transport.send_packet(self._encoder.marshal(msg))
         else:
             raise InvalidRPCRequest("RPC request {0} not implemented".format(method))

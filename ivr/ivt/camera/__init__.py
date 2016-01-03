@@ -6,10 +6,10 @@ from ivr.ivt.stream import stream_factory
 camera_type_registry = {}
 
 
-def camera_factory(camera_type, project, camera_id, streams, **kwargs):
+def camera_factory(camera_type, *args, **kwargs):
     if camera_type not in camera_type_registry:
-        raise IVRError('Unknown camera type {}'.format(camera_type))
-    return camera_type_registry[camera_type](project, camera_id, streams, **kwargs)
+        raise IVRError('Unknown camera type {0}'.format(camera_type))
+    return camera_type_registry[camera_type](*args, **kwargs)
 
 
 class MetaCamera(type):
@@ -21,42 +21,72 @@ class MetaCamera(type):
 class Camera(object):
     __metaclass__ = MetaCamera
 
+    STATE_OFFLINE = 0
+    STATE_ONLINE = 1
+    STATE_BROADCASTING = 2
+
     type = 'generic'
 
-    def __init__(self, project, camera_id, streams, **kwargs):
-        self.project = project
-        self.id = camera_id
+    def __init__(self, ivt, project_name, channel, streams, **kwargs):
+        self._ivt = ivt
+        self._project_name = project_name
+        self.channel = channel
+        self._is_online = self.STATE_ONLINE
         self.streams = {}
         for stream in streams:
             s = stream_factory(stream.pop('type'), self, stream.pop('url'), stream.pop('quality'), **stream)
-            self.streams[s.type][s.quality] = s
+            if s.type in self.streams:
+                self.streams[s.type][s.quality] = s
+            else:
+                self.streams[s.type] = {s.quality: s}
 
     def __str__(self):
-        return '_'.join((self.project, self.id))
+        return 'camera channel {0} of {1}'.format(self.channel, self._ivt)
+
+    @property
+    def is_online(self):
+        if self._is_online == self.STATE_OFFLINE:
+            return self.STATE_OFFLINE
+        else:
+            for s in self.iter_streams():
+                if s.on:
+                    return self.STATE_BROADCASTING
+        return self.STATE_ONLINE
+
+    def iter_streams(self):
+        for s_list in self.streams.itervalues():
+            for s in s_list.itervalues():
+                yield s
 
     def rtmp_publish(self, quality, rtmp_url):
-        stream = self._match_stream(quality, prefered_type=['rtsp'])
+        stream = self._match_stream(quality, preferred_type=['rtsp'])
         stream.rtmp_publish(rtmp_url)
 
     def rtmp_stop_publish(self, quality, rtmp_url):
-        stream = self._match_stream(quality, prefered_type=['rtsp'])
+        stream = self._match_stream(quality, preferred_type=['rtsp'])
         stream.rtmp_stop_publish()
 
-    def _match_stream(self, quality, prefered_type=None):
-        if not prefered_type:
-            prefered_type = ('rtsp', 'rtmp')
+    def _match_stream(self, quality, preferred_type=None):
+        if not preferred_type:
+            preferred_type = ('rtsp', 'rtmp')
 
         stream_type = None
-        for _type in prefered_type:
+        for _type in preferred_type:
             if _type in self.streams:
                 stream_type = _type
-        for stream_type in self.streams:
-            break
+        if stream_type is None:
+            for stream_type in self.streams:
+                break
         if not stream_type:
             raise IVRError('No possible stream for "{0}"'.format(self))
         if quality not in self.streams[stream_type]:
-            raise IVRError('No proper {0} stream for camera "{1}"'.format(quality, self))
+            raise IVRError('No proper {0} stream for {1}'.format(quality, self))
         return self.streams[stream_type][quality]
 
     def _keepalive(self):
         pass
+
+
+import pkgutil
+for loader, name, is_pkg in pkgutil.walk_packages(__path__):
+    loader.find_module(name).load_module(name)

@@ -5,6 +5,7 @@ import gevent
 import time
 import logging
 from ivr.common.exception import IVRError
+from ivr.common.utils import STRING
 
 log = logging.getLogger(__name__)
 
@@ -35,7 +36,7 @@ class UserSessionManager(object):
 
     def request_session(self, project_name, camera_id, stream_format, stream_quality, create=True):
         stream = self._stream_mngr.request_stream(project_name, camera_id, stream_format, stream_quality, auto_delete=True, create=create)
-        session_id = str(uuid4())
+        session_id = STRING(uuid4())
         session = self._dao.add_new_user_session(project_name, session_id, camera_id, stream.stream_format, stream.stream_quality, stream.id, stream.url)
         return session.url, session_id
 

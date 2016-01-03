@@ -12,6 +12,7 @@ from pyramid.events import subscriber, NewResponse
 
 from ivr.common.schema import SchemaError as ValidationFailure
 from ivr.common.exception import IVRError
+from ivr.common.utils import STRING
 
 
 class PrefligthHandlerFactory(object):
@@ -77,7 +78,7 @@ def failed_validation(exc, request):
     response.status_int = 400
     type, dummy, tb = sys.exc_info()
     tb_list = traceback.format_list(traceback.extract_tb(tb)[-5:])
-    return {'info': str(exc), 'exception': str(type), 'traceback': tb_list}
+    return {'info': STRING(exc), 'exception': STRING(type), 'traceback': tb_list}
 
 
 @view_config(context=IVRError)
@@ -86,7 +87,7 @@ def storlever_error_view(exc, request):
     response.status_int = exc.http_status_code
     type, dummy, tb = sys.exc_info()
     tb_list = traceback.format_list(traceback.extract_tb(tb)[-5:])
-    return {'info': str(exc), 'exception': str(type), 'traceback': tb_list}
+    return {'info': STRING(exc), 'exception': STRING(type), 'traceback': tb_list}
 
 
 @view_config(context=Exception)
@@ -95,7 +96,7 @@ def error_view(exc, request):
     response.status_int = 500
     type, dummy, tb = sys.exc_info()
     tb_list = traceback.format_list(traceback.extract_tb(tb)[-5:])
-    return {'info': str(exc), 'exception': str(type), 'traceback': tb_list}
+    return {'info': STRING(exc), 'exception': STRING(type), 'traceback': tb_list}
 
 
 @view_config(context=pyramid.exceptions.NotFound)
@@ -104,7 +105,7 @@ def not_found_view(exc, request):
     response.status_int = exc.status_code
     type, dummy, tb = sys.exc_info()
     return {'info': 'Resource {0} not found or method {1} not supported'.format(request.path, request.method),
-            'exception': str(type),
+            'exception': STRING(type),
             'traceback': []}
 
 

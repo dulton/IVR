@@ -18,6 +18,13 @@ class SADeviceDao(object):
             device = sa_device.to_device(Device)
         return device
 
+    def get_by_login_code(self, login_code):
+        with self._dao_context_mngr.context() as context:
+            session = context.session
+            sa_device = session.query(SADevice).filter(SADevice.login_code == login_code).one_or_none()
+            if sa_device:
+                return sa_device.to_device(Device)
+
     def get_list(self, filter_name=None, filter_value="",
                  start_index=0, max_number=65535):
         return self.get_list_by_project(filter_name=filter_name, filter_value=filter_value,

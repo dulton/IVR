@@ -12,6 +12,7 @@ class Camera(object):
     stream_qualities = ('ld', 'sd', 'hd', 'fhd')
     STATE_OFFLINE = 0
     STATE_ONLINE = 1
+    STATE_BROADCASTING = 2
     FLAG_LD = 0b1
     FLAG_SD = 0b10
     FLAG_HD = 0b100
@@ -66,9 +67,14 @@ class CameraManager(object):
     def get_camera(self, project_name, camera_id):
         camera = self._dao.get_by_uuid(camera_id)
         if camera and camera.project_name != project_name:
-            log.warning('Try to access camera <{0}> of project <{1}> from project <{1}>'.format(camera_id, camera.project_name, project_name))
+            log.warning('Try to access {0} from project <{1}>'.format(camera, project_name))
             camera = None
         return camera
+
+    def get_camera_by_device_channel(self, project_name, device_id, channel):
+        camera = self._dao.get_by_device_channel(device_id, channel)
+        if camera and camera.project_name != project_name:
+            log.warning('Try to access {0} from project <{1}>'.format(camera, project_name))
 
     def get_camera_list(self, project_name, start, limit):
         return self._dao.get_list_by_project(project_name=project_name, start_index=start, max_number=limit)
@@ -81,6 +87,15 @@ class CameraManager(object):
         camera = Camera(project_name, camera_id, **kwargs)
         self._dao.add(camera)
         return camera_id
+
+    def update_camera(self, camera):
+        self._dao.update(camera)
+
+    def set_camera_state_by_device_channel(self, project_name, device_id, channel, is_online):
+        camera = self.get_camera_by_device_channel(project_name, device_id, channel)
+        if camera:
+            camera.is_online = is_online
+            self._dao.update(camera)
 
     def delete_camera(self, project_name, camera):
         if project_name != camera.project_name:
@@ -96,9 +111,6 @@ class CameraManager(object):
         elif camera:
             self._dao.delete_by_uuid(camera.uuid)
         return camera
-
-    def on_camera_offline(self, camera_id):
-        pass
 
     def rtmp_publish_stream(self, project_name, camera_id, stream_id, target_quality, publish_to):
         camera = self.get_camera(project_name, camera_id)
