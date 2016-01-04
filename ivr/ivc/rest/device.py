@@ -9,8 +9,8 @@ from ivr.common.schema import Schema, Optional, Default, IntVal, Use, BoolVal, S
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('device_list', '/{project_name}/devices')
-    config.add_route('device', '/{project_name}/devices/{device_id}')
+    config.add_route('device_list', '/projects/{project_name}/devices')
+    config.add_route('device', '/projects/{project_name}/devices/{device_id}')
 
 
 get_devices_list_schema = Schema(

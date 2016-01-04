@@ -10,7 +10,7 @@ basePath: /api/ivc/v1
 produces:
   - application/json
 paths:
-  /{project_name}/cameras:
+  /projects/{project_name}/cameras:
     get:
       summary: 获取摄像头列表
       tags: [Camera]
@@ -50,7 +50,7 @@ paths:
                 description: 摄像头列表
                 items:
                   - $ref: '#/definitions/camera'
-  /{project_name}/cameras/{camera_id}:
+  /projects/{project_name}/cameras/{camera_id}:
     get:
       summary: 获取摄像头信息
       tags: [Camera]
@@ -62,7 +62,7 @@ paths:
           description: 摄像头信息
           schema:
             $ref: '#/definitions/camera'
-  /{project_name}/cameras/{camera_id}/sessions:
+  /projects/{project_name}/cameras/{camera_id}/sessions:
     post:
       summary: 请求观看媒体流
       description:
@@ -94,7 +94,7 @@ paths:
               session_id:
                 type: string
                 description: 会话ID
-  /{project_name}/cameras/{camera_id}/sessions/{session_id}:
+  /projects/{project_name}/cameras/{camera_id}/sessions/{session_id}:
     post:
       summary: 媒体流会话keepalive
       description: 客户端通过定期keepalive表明自己仍在观看该直播媒体流

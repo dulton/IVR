@@ -3,7 +3,7 @@ info:
   title: IVC API
   description: IVC的REST接口
   version: 1.0.0
-host: 121.41.72.231:25001
+host: 121.41.72.231:5001
 #host: 192.168.0.253:15001
 #host: 192.168.1.150:9999
 schemes:
@@ -12,7 +12,7 @@ basePath: /api/ivc/v1
 produces:
   - application/json
 paths:
-  /{project_name}/cameras:
+  /projects/{project_name}/cameras:
     get:
       summary: 获取摄像头列表
       tags: [Camera]
@@ -77,7 +77,7 @@ paths:
               camera_id:
                 type: string
                 description: 摄像头ID
-  /{project_name}/cameras/{camera_id}:
+  /projects/{project_name}/cameras/{camera_id}:
     get:
       summary: 获取摄像头信息
       tags: [Camera]
@@ -98,7 +98,7 @@ paths:
       responses:
         '200':
           description: 成功移除摄像头
-  /{project_name}/devices:
+  /projects/{project_name}/devices:
     get:
       summary: 获取设备列表
       tags: [Device]
@@ -166,7 +166,7 @@ paths:
               device_id:
                 type: string
                 description: 设备ID
-  /{project_name}/devices/{device_id}:
+  /projects/{project_name}/devices/{device_id}:
     get:
       summary: 获取设备信息
       tags: [Device]
@@ -187,7 +187,7 @@ paths:
       responses:
         '200':
           description: 成功移除设备
-  /{project_name}/cameras/{camera_id}/sessions:
+  /projects/{project_name}/cameras/{camera_id}/sessions:
     post:
       summary: 请求观看媒体流
       description:
@@ -219,7 +219,7 @@ paths:
               session_id:
                 type: string
                 description: 会话ID
-  /{project_name}/cameras/{camera_id}/sessions/{session_id}:
+  /projects/{project_name}/cameras/{camera_id}/sessions/{session_id}:
     post:
       summary: 媒体流会话keepalive
       description: 客户端通过定期keepalive表明自己仍在观看该直播媒体流
@@ -242,7 +242,7 @@ paths:
       responses:
         '200':
           description: 成功接收结束观看请求
-  /_admin_/projects:
+  /projects:
     get:
       summary: 获取项目列表
       tags: [Project]
@@ -293,7 +293,7 @@ paths:
       responses:
         '200':
           description: 成功创建项目
-  /_admin_/projects/{project_name}:
+  /projects/{project_name}:
     get:
       summary: 获取项目信息
       tags: [Project]

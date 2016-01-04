@@ -9,8 +9,8 @@ from ivr.common.exception import IVRError
 
 
 def includeme(config):
-    config.add_route('project_list', '/{admin}/projects')
-    config.add_route('project', '/{admin}/projects/{project_name}')
+    config.add_route('project_list', '/projects')
+    config.add_route('project', '/projects/{project_name}')
 
 
 get_project_list_schema = Schema(
@@ -21,8 +21,6 @@ get_project_list_schema = Schema(
 
 @get_view(route_name='project_list')
 def get_device_list(request):
-    if request.matchdict['admin'] != '_admin_':
-        raise IVRError('Not allowed')
     req = get_params_from_request(request, get_project_list_schema)
     start = req['start']
     limit = req['limit']
@@ -50,28 +48,20 @@ new_device_request_schema = Schema({
 
 @post_view(route_name='project_list')
 def new_project(request):
-    if request.matchdict['admin'] != '_admin_':
-        raise IVRError('Not allowed')
     req = get_params_from_request(request, new_device_request_schema)
     request.registry.project_mngr.add_project(project_name=req.pop('project_name'), **req)
 
 
 @get_view(route_name='project')
 def get_project(request):
-    if request.matchdict['admin'] != '_admin_':
-        raise IVRError('Not allowed')
     return request.registry.project_mngr.get_project(request.matchdict['project_name'])
 
 
 @put_view(route_name='project')
 def update_project(request):
-    if request.matchdict['admin'] != '_admin_':
-        raise IVRError('Not allowed')
     pass
 
 
 @delete_view(route_name='project')
 def delete_project(request):
-    if request.matchdict['admin'] != '_admin_':
-        raise IVRError('Not allowed')
     request.registry.project_mngr.delete_project_by_name(request.matchdict['project_name'])

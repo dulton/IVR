@@ -203,8 +203,9 @@ class StrVal(object):
         self._invalid_char_set = invalid_char_set
 
     def validate(self, data):
-        if type(data) not in (STRING):
+        if type(data) not in (str, unicode):
             raise SchemaError('{0} in not valid string'.format(data), self._error)
+        data = STRING(data)
         if self._min_len is not None and len(data) < self._min_len:
             raise SchemaError('{0} should be longer than {1} characters'.format(data, self._min_len), self._error)
         if self._max_len is not None and len(data) > self._max_len:

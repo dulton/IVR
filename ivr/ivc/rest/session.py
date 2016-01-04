@@ -8,8 +8,8 @@ from ivr.common.schema import Schema, Optional, Default, BoolVal, EnumVal, Use
 def includeme(config):
     # block device list resource
     # GET:    block device list
-    config.add_route('user_session_list', '/{project_name}/cameras/{camera_id}/sessions')
-    config.add_route('user_session', '/{project_name}/cameras/{camera_id}/sessions/{session_id}')
+    config.add_route('user_session_list', '/projects/{project_name}/cameras/{camera_id}/sessions')
+    config.add_route('user_session', '/projects/{project_name}/cameras/{camera_id}/sessions/{session_id}')
 
 
 @get_view(route_name='user_session_list')
