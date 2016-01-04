@@ -1,10 +1,9 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
-import uuid
 import time
 import gevent
+from gevent.lock import RLock
 from ivr.common.exception import IVRError
-from ivr.common.utils import STRING
 
 from streamswitch.stream_mngr import create_stream
 from streamswitch.sender_mngr import create_sender
@@ -39,39 +38,55 @@ class Stream(object):
         self.url = url
         self.quality = quality
         self.on = False
-        self.stream_name = STRING(uuid.uuid4())
+        self._stsw_stream_name = '_'.join((self.camera.name, self.type, self.quality))
         self.stsw_source = None
         self.stsw_senders = {}
+        self._stsw_source_mutex = RLock()
+        self._stsw_sender_mutex = RLock()
         gevent.spawn(self._destroy_stsw_source_on_idle)
 
     def __str__(self):
-        return self.stream_name
+        return '{0} {1} stream of {2}'.format(self.quality, self.type, self.camera)
 
-    def rtmp_publish(self, rtmp_url):
-        self._prepare_stsw_source()
-        sender_name = '_'.join(('rtmp', 'sender', self.stream_name))
-        sender = create_sender(sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
-                               sender_name=sender_name,
-                               dest_url=rtmp_url,
-                               log_file=sender_name + '.log',
-                               dest_format='flv',
-                               stream_name=self.stream_name,
-                               extra_options={'vcodec': 'copy'})
-        self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME] = sender
-        self.on = True
+    def rtmp_publish(self, rtmp_url, stream_id):
+        with self._stsw_source_mutex:
+            self._prepare_stsw_source()
+            with self._stsw_sender_mutex:
+                if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
+                    if stream_id in self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME]:
+                        log.warn('RTMP sender {0} for {1} already exits'.format(stream_id, self))
+                        return
+                sender_name = '_'.join(('rtmp', 'sender', self._stsw_stream_name))
+                sender = create_sender(sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
+                                       sender_name=sender_name,
+                                       dest_url=rtmp_url,
+                                       log_file=sender_name + '.log',
+                                       dest_format='flv',
+                                       stream_name=self._stsw_stream_name,
+                                       extra_options={'vcodec': 'copy'})
+                if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
+                    self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME][stream_id] = sender
+                else:
+                    self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME] = {stream_id: sender}
+                log.warn('Create RTMP sender {0} for {1}'.format(stream_id, self))
 
-    def rtmp_stop_publish(self):
-        self.on = False
-        sender = self.stsw_senders.pop(NATIVE_FFMPEG_SENDER_TYPE_NAME, None)
-        if sender:
-            sender.destory()
+    def rtmp_stop_publish(self, stream_id):
+        with self._stsw_sender_mutex:
+            if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
+                sender = self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME].pop(stream_id, None)
+                if sender:
+                    sender.destory()
+                    log.info('Destroy RTMP sender {0} for {1}'.format(stream_id, self))
+                    return
+        log.warning('Unable to destroy, RTMP sender {0} for {1} not exists'.format(stream_id, self))
 
     def _prepare_stsw_source(self):
         if not self.stsw_source:
             self.stsw_source = create_stream(source_type=self.stsw_source_type,
-                                             stream_name='_'.join(self.stream_name),
+                                             stream_name='_'.join(self._stsw_stream_name),
                                              url=self.url,
-                                             log_file=self.stream_name+'.log')
+                                             log_file=self._stsw_stream_name + '.log')
+            log.info('created STSW source for {0}'.format(self))
 
     def _destroy_stsw_source_on_idle(self):
         idle_cnt = 0
@@ -79,15 +94,18 @@ class Stream(object):
             idle = False
             try:
                 time.sleep(30)
-                if self.stsw_source:
-                    if self.stsw_source.get_client_list(0, 0).total_num == 0:
-                        if idle_cnt > 2:
-                            # TODO small chance stream session is establishing,
-                            # and we may destroy it before sender just about to connect to it
-                            self.on = False
-                            self.stsw_source.destroy()
-                        else:
-                            idle = True
+                with self._stsw_source_mutex:
+                    if self.stsw_source:
+                        if self.stsw_source.get_client_list(0, 0).total_num == 0:
+                            if idle_cnt > 2:
+                                # TODO small chance stream session is establishing,
+                                # and we may destroy it before sender just about to connect to it
+                                self.on = False
+                                self.stsw_source.destroy()
+                                self.stsw_senders = None
+                                log.info('Destroy idel STSW source for {0}'.format(self))
+                            else:
+                                idle = True
             except Exception:
                 log.exception('Failed to check source client')
             finally:

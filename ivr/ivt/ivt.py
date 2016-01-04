@@ -6,6 +6,8 @@ import gevent
 from ivr.common.rpc import RPCSession
 from ivr.common.exception import IVRError
 from ivr.ivt.camera import camera_factory, Camera
+from ivr.common.schema import Schema, Use, STRING, IntVal
+from ivr.common.datatype import VideoQuality
 
 import logging
 log = logging.getLogger(__name__)
@@ -18,6 +20,7 @@ class IVT(object):
         self.keepalive_interval = keepalive_interval
         self._session = None
         self._cameras = {}
+        self.name = '_'.join((self._project_name, self.id))
         for camera in cameras:
             c = camera_factory(camera_type=camera.pop('type'),
                                ivt=self,
@@ -50,20 +53,33 @@ class IVT(object):
             info[camera_id] = camera.info
         return info
 
-    def rtmp_publish(self, channel, publish_url):
+    def rtmp_publish(self, channel, quality, publish_url, stream_id):
         camera = self._cameras.get(channel)
         if not camera:
             raise IVRError('Channel {0} not exists'.format(channel))
-        camera.rtmp_publish(publish_url)
+        camera.rtmp_publish(quality, publish_url, stream_id)
 
-    def rtmp_stop_publish(self, channel, publish_url):
+    def rtmp_stop_publish(self, channel, stream_id):
         camera = self._cameras.get(channel)
         if not camera:
             raise IVRError('Channel {0} not exists'.format(channel))
-        camera.rtmp_stop_publish(publish_url)
+        camera.rtmp_stop_publish(stream_id)
 
 
 class IVTSession(RPCSession):
+
+    request_publish_rtmp_schame = Schema({
+        'channel': IntVal(min=0),
+        'quality': VideoQuality.schema,
+        'url': Use(STRING),
+        'stream_id': Use(STRING),
+    })
+
+    request_stop_rtmp_schema = Schema({
+        'channel': IntVal(min=0),
+        'stream_id': Use(STRING),
+    })
+
     def __init__(self, ivt, transport):
         self._ivt = ivt
         super(IVTSession, self).__init__(transport)
@@ -73,7 +89,7 @@ class IVTSession(RPCSession):
         while True:
             try:
                 data = {}
-                for c in self._ivt.iter_cameras:
+                for c in self._ivt.iter_cameras():
                     data[c.channel] = {'is_online': c.is_online}
                 self._send_event('keepalive', data)
             except Exception:
@@ -93,11 +109,11 @@ class IVTSession(RPCSession):
         return {'id': self._ivt.id, 'cameras': self._ivt.cameras_info()}
 
     def rpc_RTMPPublish(self, params):
-        # TODO schema check
-        self._ivt.rtmp_publish(params['camera_id'], params['url'])
+        params = self.request_publish_rtmp_schame.validate(params)
+        self._ivt.rtmp_publish(params['channel'], params['quality'], params['url'], params['stream_id'])
 
     def rpc_RTMPStopPublish(self, params):
-        # TODO schema check
-        self._ivt.rtmp_stop_publish(params['camera_id'], params['url'])
+        params = self.request_stop_rtmp_schema.validate(params)
+        self._ivt.rtmp_stop_publish(params['channel'], params['stream_id'])
 
 

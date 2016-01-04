@@ -60,7 +60,7 @@ def main():
             {
                 'login_code': config['login_code'],
                 'login_passwd': config['login_passwd'],
-                'project': config['project_name']
+                'project': config['project']
             }
         )
         while True:

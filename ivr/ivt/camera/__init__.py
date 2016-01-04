@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division
 from ivr.common.exception import IVRError
 from ivr.ivt.stream import stream_factory
+from ivr.common.utils import STRING
 
 camera_type_registry = {}
 
@@ -31,6 +32,7 @@ class Camera(object):
         self._ivt = ivt
         self._project_name = project_name
         self.channel = channel
+        self.name = '_'.join((self._ivt.name, STRING(self.channel)))
         self._is_online = self.STATE_ONLINE
         self.streams = {}
         for stream in streams:
@@ -58,13 +60,13 @@ class Camera(object):
             for s in s_list.itervalues():
                 yield s
 
-    def rtmp_publish(self, quality, rtmp_url):
+    def rtmp_publish(self, quality, rtmp_url, stream_id):
         stream = self._match_stream(quality, preferred_type=['rtsp'])
-        stream.rtmp_publish(rtmp_url)
+        stream.rtmp_publish(rtmp_url, stream_id)
 
-    def rtmp_stop_publish(self, quality, rtmp_url):
+    def rtmp_stop_publish(self, quality, stream_id):
         stream = self._match_stream(quality, preferred_type=['rtsp'])
-        stream.rtmp_stop_publish()
+        stream.rtmp_stop_publish(stream_id)
 
     def _match_stream(self, quality, preferred_type=None):
         if not preferred_type:

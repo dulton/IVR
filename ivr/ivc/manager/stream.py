@@ -2,9 +2,11 @@
 from __future__ import unicode_literals, division
 import gevent
 import os
+import uuid
 import time
 
 from ivr.common.exception import IVRError
+from ivr.common.utils import STRING
 
 
 class Stream(object):
@@ -39,8 +41,8 @@ class StreamManager(object):
             return stream
         camera = self._camera_mngr.get_camera(project_name, camera_id)
         if not camera:
-            raise IVRError('No such camera "{0}" or project "{1}"'.format(camera_id, project_name))
-        if camera.is_online == 0:
+            raise IVRError('No such camera <{0}> or project <{1}>'.format(camera_id, project_name))
+        if camera.is_online == camera.STATE_OFFLINE:
             raise IVRError('{0} is offline'.format(camera))
         target_quality = camera.find_possible_quality(stream_quality)
         if target_quality != stream_quality:
@@ -48,7 +50,7 @@ class StreamManager(object):
             if stream:
                 return stream
         # target stream does not exist, create stream
-        stream_id = '_'.join((project_name, camera_id, stream_format, stream_quality))
+        stream_id = STRING(uuid.uuid4())
         publish_to = os.path.join(self._rtmp_publish_url_prefix, stream_id)
         url = self.calc_url(stream_format, stream_id)
         stream = self._dao.add_stream(project_name, stream_id, camera_id, stream_format, stream_quality, publish_to, url)

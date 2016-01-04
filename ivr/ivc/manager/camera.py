@@ -75,6 +75,7 @@ class CameraManager(object):
         camera = self._dao.get_by_device_channel(device_id, channel)
         if camera and camera.project_name != project_name:
             log.warning('Try to access {0} from project <{1}>'.format(camera, project_name))
+        return camera
 
     def get_camera_list(self, project_name, start, limit):
         return self._dao.get_list_by_project(project_name=project_name, start_index=start, max_number=limit)
@@ -114,9 +115,13 @@ class CameraManager(object):
 
     def rtmp_publish_stream(self, project_name, camera_id, stream_id, target_quality, publish_to):
         camera = self.get_camera(project_name, camera_id)
-        self._device_mngr.rtmp_publish_stream(project_name, camera.device_uuid, camera_id, stream_id, target_quality, publish_to)
+        if not camera:
+            raise IVRError('Unknown camera <{0}> or project <{1}>'.format(camera_id, project_name))
+        self._device_mngr.rtmp_publish_stream(project_name, camera.device_uuid, camera.channel_index, stream_id, target_quality, publish_to)
 
     def stop_rtmp_publish(self, project_name, camera_id, stream_id):
         camera = self.get_camera(project_name, camera_id)
-        self._device_mngr.stop_rtmp_publish(project_name, camera.device_uuid, camera_id, stream_id)
+        if not camera:
+            raise IVRError('Unknown camera <{0}> or project <{1}>'.format(camera_id, project_name))
+        self._device_mngr.stop_rtmp_publish(project_name, camera.device_uuid, camera.channel_index, stream_id)
 
