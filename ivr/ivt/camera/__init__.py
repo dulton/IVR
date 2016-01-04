@@ -64,9 +64,10 @@ class Camera(object):
         stream = self._match_stream(quality, preferred_type=['rtsp'])
         stream.rtmp_publish(rtmp_url, stream_id)
 
-    def rtmp_stop_publish(self, quality, stream_id):
-        stream = self._match_stream(quality, preferred_type=['rtsp'])
-        stream.rtmp_stop_publish(stream_id)
+    def rtmp_stop_publish(self, stream_id):
+        for s in self.iter_streams():
+            if s.is_source_of(stream_id):
+                s.rtmp_stop_publish(stream_id)
 
     def _match_stream(self, quality, preferred_type=None):
         if not preferred_type:

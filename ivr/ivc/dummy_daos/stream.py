@@ -15,11 +15,13 @@ class StreamDAO(object):
     def __init__(self):
         self._streams = []
 
-    def get_stream_list(self, project_name, camera_id):
+    def get_list(self, project_name, camera_id):
         pass
 
-    def get_stream_by_id(self, stream_id):
-        pass
+    def get_by_id(self, stream_id):
+        for s in self._streams:
+            if s.id == stream_id:
+                return s
 
     def get_stream(self, project_name, camera_id, stream_format, stream_quality):
         for s in self._streams:
@@ -29,6 +31,15 @@ class StreamDAO(object):
                 and s.stream_quality == stream_quality:
                 return s
 
+    def get_stream_older_than(self, time_threshold, max=10):
+        streams = []
+        for s in self._streams:
+            if len(streams) >= max:
+                return streams
+            elif s.last_keepalive < time_threshold:
+                streams.append(s)
+        return streams
+
     def add_stream(self, *args, **kwargs):
         stream = Stream(*args, **kwargs)
         for s in self._streams:
@@ -37,8 +48,13 @@ class StreamDAO(object):
         self._streams.append(stream)
         return stream
 
-    def update_stream(self, stream):
-        pass
+    def update(self, stream):
+        for i, s in enumerate(self._streams):
+            if s.id == stream.id:
+                self._streams[i] = stream
 
-    def delete_stream(self, stream_id):
-        pass
+    def delete(self, stream_id):
+        for i, s in enumerate(self._streams):
+            if s.id == stream_id:
+                self._streams.pop(i)
+

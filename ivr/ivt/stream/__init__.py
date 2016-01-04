@@ -40,13 +40,19 @@ class Stream(object):
         self.on = False
         self._stsw_stream_name = '_'.join((self.camera.name, self.type, self.quality))
         self.stsw_source = None
-        self.stsw_senders = {}
+        self.stsw_senders = {}  # {<sender_type>: {<stream_id>: sender}}
         self._stsw_source_mutex = RLock()
         self._stsw_sender_mutex = RLock()
         gevent.spawn(self._destroy_stsw_source_on_idle)
 
     def __str__(self):
         return '{0} {1} stream of {2}'.format(self.quality, self.type, self.camera)
+
+    def is_source_of(self, stream_id):
+        for _, senders in self.stsw_senders.iteritems():
+            if stream_id in senders:
+                return True
+        return False
 
     def rtmp_publish(self, rtmp_url, stream_id):
         with self._stsw_source_mutex:
@@ -75,7 +81,7 @@ class Stream(object):
             if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
                 sender = self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME].pop(stream_id, None)
                 if sender:
-                    sender.destory()
+                    sender.destroy()
                     log.info('Destroy RTMP sender {0} for {1}'.format(stream_id, self))
                     return
         log.warning('Unable to destroy, RTMP sender {0} for {1} not exists'.format(stream_id, self))
@@ -83,7 +89,7 @@ class Stream(object):
     def _prepare_stsw_source(self):
         if not self.stsw_source:
             self.stsw_source = create_stream(source_type=self.stsw_source_type,
-                                             stream_name='_'.join(self._stsw_stream_name),
+                                             stream_name=self._stsw_stream_name,
                                              url=self.url,
                                              log_file=self._stsw_stream_name + '.log')
             log.info('created STSW source for {0}'.format(self))
@@ -102,7 +108,7 @@ class Stream(object):
                                 # and we may destroy it before sender just about to connect to it
                                 self.on = False
                                 self.stsw_source.destroy()
-                                self.stsw_senders = None
+                                self.stsw_source = None
                                 log.info('Destroy idel STSW source for {0}'.format(self))
                             else:
                                 idle = True

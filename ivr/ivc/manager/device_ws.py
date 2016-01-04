@@ -136,4 +136,4 @@ class DeviceWSConnectionManager(DeviceManager):
         device_conn = self._device_connections.get(device_id)
         if not device_conn:
             raise IVRError('Device <{0}> of project <{1}> is not online'.format(device_id, project_name))
-        device_conn.stop_rtmp_publish(self, channel, stream_id)
+        device_conn.stop_rtmp_publish(channel, stream_id)

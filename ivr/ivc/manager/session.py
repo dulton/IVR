@@ -24,7 +24,7 @@ class UserSession(object):
         self.last_keepalive = None
 
     def __str__(self):
-        return '<session "{0}" of project "{1}">'.format(self.session_id, self.project_name)
+        return 'user session <{0}> of project <{1}>'.format(self.session_id, self.project_name)
 
 
 class UserSessionManager(object):
@@ -38,6 +38,7 @@ class UserSessionManager(object):
         stream = self._stream_mngr.request_stream(project_name, camera_id, stream_format, stream_quality, auto_delete=True, create=create)
         session_id = STRING(uuid4())
         session = self._dao.add_new_user_session(project_name, session_id, camera_id, stream.stream_format, stream.stream_quality, stream.id, stream.url)
+        log.info('Create {0} for {1}'.format(session, stream))
         return session.url, session_id
 
     def stop_session(self, project_name, camera_id, session_id):
@@ -53,6 +54,7 @@ class UserSessionManager(object):
             raise IVRError('session "{0}" of project "{1}" not found'.format(session_id, project_name))
         session.last_keepalive = time.time()
         self._dao.update_user_session(project_name, session)
+        self._stream_mngr.keepalive(session.stream_id)
 
     def _chk_session_ttl(self):
         start = 0
