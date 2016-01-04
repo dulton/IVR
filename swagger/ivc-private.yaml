@@ -3,7 +3,7 @@ info:
   title: IVC API
   description: IVC的REST接口
   version: 1.0.0
-host: 121.41.72.231:25001
+host: 121.41.72.231:5001
 #host: 192.168.0.253:15001
 #host: 192.168.1.150:9999
 schemes:
