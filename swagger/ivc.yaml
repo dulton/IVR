@@ -73,6 +73,11 @@ paths:
         - $ref: '#/parameters/camera_id'
         - $ref: '#/parameters/format'
         - $ref: '#/parameters/quality'
+        - name: user
+          in: formData
+          description: 请求的用户的名称
+          required: false
+          type: string
         - name: create
           in: query
           description: 若该流不存在，是否创建。

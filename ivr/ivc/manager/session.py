@@ -34,7 +34,7 @@ class UserSessionManager(object):
         self._ttl = ttl
         gevent.spawn(self._chk_session_ttl)
 
-    def request_session(self, project_name, camera_id, stream_format, stream_quality, create=True):
+    def request_session(self, project_name, camera_id, stream_format, stream_quality, user=None, create=True):
         stream = self._stream_mngr.request_stream(project_name, camera_id, stream_format, stream_quality, auto_delete=True, create=create)
         session_id = STRING(uuid4())
         session = self._dao.add_new_user_session(project_name, session_id, camera_id, stream.stream_format, stream.stream_quality, stream.id, stream.url)
