@@ -58,7 +58,7 @@ class UserSessionManager(object):
             stream_quality=stream.stream_quality,
             stream_id=stream.id,
             url=stream.url,
-            user='',
+            user=user,
         )
         log.info('Create {0} for {1}'.format(session, stream))
         return session.url, session_id
