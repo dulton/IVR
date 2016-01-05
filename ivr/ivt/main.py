@@ -51,7 +51,11 @@ def main():
         ivt = IVT(config['project'], config['login_code'], config['keepalive_interval'], config['cameras'])
 
         # start port
-        port = SubProcessPort(port_name=config['login_code'], port_type=RTSP_PORT_PROGRAM_NAME)
+        port = SubProcessPort(
+            port_name=config['login_code'],
+            port_type=RTSP_PORT_PROGRAM_NAME,
+            log_file= RTSP_PORT_PROGRAM_NAME + '.log',
+        )
         port.start()
 
         # connect to IVC

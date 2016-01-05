@@ -102,7 +102,7 @@ paths:
   /projects/{project_name}/cameras/{camera_id}/sessions/{session_id}:
     post:
       summary: 媒体流会话keepalive
-      description: 客户端通过定期keepalive表明自己仍在观看该直播媒体流
+      description: 客户端以20秒为周期定期发送keepalive，表明自己仍在观看该直播媒体流
       parameters:
         - $ref: '#/parameters/project_name'
         - $ref: '#/parameters/camera_id'

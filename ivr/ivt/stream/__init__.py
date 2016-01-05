@@ -63,13 +63,21 @@ class Stream(object):
                         log.warn('RTMP sender {0} for {1} already exits'.format(stream_id, self))
                         return
                 sender_name = '_'.join(('rtmp', 'sender', self._stsw_stream_name))
-                sender = create_sender(sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
-                                       sender_name=sender_name,
-                                       dest_url=rtmp_url,
-                                       log_file=sender_name + '.log',
-                                       dest_format='flv',
-                                       stream_name=self._stsw_stream_name,
-                                       extra_options={'vcodec': 'copy'})
+                sender = create_sender(
+                    sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
+                    sender_name=sender_name,
+                    dest_url=rtmp_url,
+                    log_file='sender_' + sender_name + '.log',
+                    dest_format='flv',
+                    stream_name=self._stsw_stream_name,
+                    extra_options={
+                        'vcodec': 'copy',
+                        'acodec': 'aac',
+                        'ar': '8000',
+                        'strict': '-2',
+                        'ac': '1',
+                        'b:a': '10k',
+                    })
                 if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
                     self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME][stream_id] = sender
                 else:
@@ -91,7 +99,7 @@ class Stream(object):
             self.stsw_source = create_stream(source_type=self.stsw_source_type,
                                              stream_name=self._stsw_stream_name,
                                              url=self.url,
-                                             log_file=self._stsw_stream_name + '.log')
+                                             log_file='source_' + self._stsw_stream_name + '.log')
             log.info('created STSW source for {0}'.format(self))
 
     def _destroy_stsw_source_on_idle(self):
