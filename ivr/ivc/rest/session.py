@@ -20,7 +20,7 @@ def get_user_session_list(request):
 get_stream_schema = Schema({'format': EnumVal(['hls', 'rtmp']),
                             Optional('quality'): Default(EnumVal(['ld', 'sd', 'hd']), default='ld'),
                             Optional('create'): Default(BoolVal(), default=True),
-                            Optional('user'): Use(STRING)})
+                            Optional('user'): Default(Use(STRING), default='')})
 
 
 @post_view(route_name='user_session_list')

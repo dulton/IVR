@@ -79,7 +79,7 @@ paths:
           required: false
           type: string
         - name: create
-          in: query
+          in: formData
           description: 若该流不存在，是否创建。
           required: false
           type: boolean
