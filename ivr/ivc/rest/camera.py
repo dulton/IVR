@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
-
+from pyramid.response import Response
 from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
 from ivr.ivc.rest.common import get_params_from_request
 from ivr.common.schema import Schema, Optional, Default, IntVal, Use, BoolVal, StrVal
@@ -68,5 +68,6 @@ def update_camera(request):
 @delete_view(route_name='camera')
 def delete_camera(request):
     request.registry.camera_mngr.delete_camera_by_id(request.matchdict['project_name'], request.matchdict['camera_id'])
+    return Response(status=200)
 
 

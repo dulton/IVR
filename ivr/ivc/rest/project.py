@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
-
+from pyramid.response import Response
 from ivr.common.schema import Schema, Optional, Default, IntVal
 from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
 from ivr.ivc.rest.common import get_params_from_request
@@ -50,6 +50,7 @@ new_device_request_schema = Schema({
 def new_project(request):
     req = get_params_from_request(request, new_device_request_schema)
     request.registry.project_mngr.add_project(project_name=req.pop('project_name'), **req)
+    return Response(status=200)
 
 
 @get_view(route_name='project')
@@ -65,3 +66,4 @@ def update_project(request):
 @delete_view(route_name='project')
 def delete_project(request):
     request.registry.project_mngr.delete_project_by_name(request.matchdict['project_name'])
+    return Response(status=200)

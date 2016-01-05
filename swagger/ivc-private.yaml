@@ -188,6 +188,27 @@ paths:
         '200':
           description: 成功移除设备
   /projects/{project_name}/cameras/{camera_id}/sessions:
+    get:
+      summary: 获取正在观看指定摄像头的用户会话
+      description: 获取正在观看指定摄像头的用户会话
+      tags: [User Session]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - name: start
+          in: query
+          description: 返回的媒体流会话的起始索引
+          required: false
+          type: integer
+          default: 0
+        - name: limit
+          in: query
+          description: 最多返回的会话个数，最大100，最小0
+          required: false
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 0
     post:
       summary: 请求观看媒体流
       description:

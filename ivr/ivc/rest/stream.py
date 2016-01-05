@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
+from pyramid.response import Response
 from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
 from ivr.ivc.rest.common import get_params_from_request
 from ivr.common.datatype import VideoQuality
@@ -36,4 +37,4 @@ def get_stream_info(request):
 
 @delete_view(route_name='stream')
 def stop_stream(request):
-    return
+    return Response(status=200)
