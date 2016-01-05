@@ -72,6 +72,10 @@ class UserManager(object):
                                      start_index=0, max_number=65535):
         with self._dao_context_mngr.context():
 
+            project = self._project_dao.get_by_name(project_name)
+            if project is None:
+                raise IVRError("Project(%s) Not Found" % project_name, 404)
+
             user_list = self._user_dao.get_list_by_project(
                 project_name=project_name,
                 filter_name=filter_name,
@@ -102,6 +106,7 @@ class UserManager(object):
             else:
                 user.flags &= ~User.USER_FLAG_PRIVILEGE
             self._user_dao.add(user)
+            user = self._user_dao.get_by_username(username)
         return user
 
     def mod_user(self, username,  **kwargs):
@@ -109,11 +114,17 @@ class UserManager(object):
             user = self._user_dao.get_by_username(username)
             if user is None:
                 raise IVRError("User Not Found", 404)
+            is_privilege = (user.flags & User.USER_FLAG_PRIVILEGE) != 0
             for (k, v) in kwargs.items():
                 if k in ("password", "title", "desc", "long_desc", "cellphone", "email"):
                     setattr(user, k, v)
+            if is_privilege:
+                user.flags |= User.USER_FLAG_PRIVILEGE
+            else:
+                user.flags &= ~User.USER_FLAG_PRIVILEGE
             user.utime = datetime.datetime.now()
             self._user_dao.update(user)
+        return user
 
     def delete_user_by_name(self, username):
         with self._dao_context_mngr.context():
@@ -132,7 +143,7 @@ class UserManager(object):
     def join_to_project(self, username, project_name):
         with self._dao_context_mngr.context():
             user = self._user_dao.get_by_username(username)
-            if user is not None:
+            if user is None:
                 raise IVRError("Username Not Found", 404)
 
             user_projects = self._user_dao.get_user_projects(user)
@@ -148,7 +159,7 @@ class UserManager(object):
     def leave_from_project(self, username, project_name):
         with self._dao_context_mngr.context():
             user = self._user_dao.get_by_username(username)
-            if user is not None:
+            if user is None:
                 raise IVRError("Username Not Found", 404)
             user_projects = self._user_dao.get_user_projects(user)
             for user_project in user_projects:
