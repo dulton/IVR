@@ -45,7 +45,12 @@ class StreamManager(object):
         # find possible existing stream
         stream = self._dao.get_stream(project_name, camera_id, stream_format, stream_quality)
         if stream:
-            return stream
+            try:
+                stream.last_keepalive = datetime.datetime.now()
+                self._dao.update(stream)
+                return stream
+            except Exception:
+                log.exception('Failed to keepalive stream')
         camera = self._camera_mngr.get_camera(project_name, camera_id)
         if not camera:
             raise IVRError('No such camera <{0}> or project <{1}>'.format(camera_id, project_name))
@@ -69,6 +74,8 @@ class StreamManager(object):
         stream = self._dao.get_by_id(stream_id)
         if not stream:
             return
+        self._dao.delete(stream.id)
+        # TODO chance we may fail to request stop publish to IVT
         self._camera_mngr.stop_rtmp_publish(stream.project_name, stream.camera_id, stream.id)
         log.info('Stop {0}'.format(stream))
 
@@ -93,8 +100,8 @@ class StreamManager(object):
                 last_keepalive = datetime.datetime.now() - datetime.timedelta(seconds=self._stream_ttl)
                 streams = self._dao.get_stream_older_than(last_keepalive)
                 for stream in streams:
-                    self._camera_mngr.stop_rtmp_publish(stream.project_name, stream.camera_id, stream.id)
                     self._dao.delete(stream.id)
+                    self._camera_mngr.stop_rtmp_publish(stream.project_name, stream.camera_id, stream.id)
                     log.info('Stop {0}'.format(stream))
             except Exception:
                 log.exception('Failed to check idle stream')

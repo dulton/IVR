@@ -43,8 +43,8 @@ class StreamDAO(object):
     def add_stream(self, *args, **kwargs):
         stream = Stream(*args, **kwargs)
         for s in self._streams:
-            if s.stream_id == stream.stream_id:
-                raise IVRError('Stream "{0}" alreay exists'.format(stream.stream_id))
+            if s.id == stream.id:
+                raise IVRError('Stream "{0}" alreay exists'.format(stream.id))
         self._streams.append(stream)
         return stream
 
