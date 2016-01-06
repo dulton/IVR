@@ -17,6 +17,7 @@ requires = [
     'SQLAlchemy>=1.0.9',
     'PyMySQL>=0.6.7',
     'alembic>=0.8.0',
+    'requests==2.9.1',
 ]
 
 if sys.version_info < (2, 7):

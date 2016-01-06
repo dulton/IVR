@@ -50,14 +50,18 @@ class UserSessionManager(object):
     def request_session(self, project_name, camera_id, stream_format, stream_quality, user='', create=True):
         stream = self._stream_mngr.request_stream(project_name, camera_id, stream_format, stream_quality, auto_delete=True, create=create)
         session_id = STRING(uuid4())
+        if stream_format == 'hls':
+            url = stream.hls_url
+        else:
+            url = stream.rtmp_url
         session = self._dao.add_new_user_session(
             project_name=project_name,
             session_id=session_id,
             camera_id=camera_id,
-            stream_format=stream.stream_format,
+            stream_format=stream_format,
             stream_quality=stream.stream_quality,
             stream_id=stream.id,
-            url=stream.url,
+            url=url,
             user=user,
         )
         log.info('Create {0} for {1}'.format(session, stream))
