@@ -8,7 +8,7 @@ import urllib
 
 from ivr.common.logger import default_config as default_log_config
 from ivr.common.ws import WSClientTransport
-from ivr.common.schema import Schema, Use, EnumVal, IntVal, ListVal
+from ivr.common.schema import Schema, Use, EnumVal, IntVal, ListVal, DoNotCare
 from ivr.ivt.ivt import IVT
 from ivr.common.confparser import parse as parse_conf
 from ivr.common.utils import STRING
@@ -27,11 +27,13 @@ config_schema = Schema({
     'cameras': ListVal({
         'channel': IntVal(min=0),
         'type': Use(STRING),
+        'ip': Use(STRING),
         'streams': ListVal({
             'type': Use(STRING),
             'quality': VideoQuality.schema,
             'url': Use(STRING),
-        })
+        }),
+        DoNotCare(STRING): object
     }),
 })
 

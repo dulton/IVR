@@ -28,9 +28,10 @@ class Camera(object):
 
     type = 'generic'
 
-    def __init__(self, ivt, project_name, channel, streams, **kwargs):
+    def __init__(self, ivt, project_name, channel, streams, ip, **kwargs):
         self._ivt = ivt
         self._project_name = project_name
+        self._ip = ip
         self.channel = channel
         self.name = '_'.join((self._ivt.name, STRING(self.channel)))
         self._is_online = self.STATE_ONLINE
@@ -43,7 +44,7 @@ class Camera(object):
                 self.streams[s.type] = {s.quality: s}
 
     def __str__(self):
-        return 'camera channel {0} of {1}'.format(self.channel, self._ivt)
+        return '{0} camera {1} of {2}'.format(self.type, self._ip, self._ivt)
 
     @property
     def is_online(self):

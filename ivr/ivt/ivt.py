@@ -27,6 +27,7 @@ class IVT(object):
                                project_name=project_name,
                                channel=camera.pop('channel'),
                                streams=camera.pop('streams'),
+                               ip=camera.pop('ip'),
                                **camera)
             self._cameras[c.channel] = c
 
