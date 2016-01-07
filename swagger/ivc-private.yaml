@@ -188,6 +188,27 @@ paths:
         '200':
           description: 成功移除设备
   /projects/{project_name}/cameras/{camera_id}/sessions:
+    get:
+      summary: 获取正在观看指定摄像头的用户会话
+      description: 获取正在观看指定摄像头的用户会话
+      tags: [User Session]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - name: start
+          in: query
+          description: 返回的媒体流会话的起始索引
+          required: false
+          type: integer
+          default: 0
+        - name: limit
+          in: query
+          description: 最多返回的会话个数，最大100，最小0
+          required: false
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 0
     post:
       summary: 请求观看媒体流
       description:
@@ -247,6 +268,71 @@ paths:
       responses:
         '200':
           description: 成功接收结束观看请求
+  /projects/{project_name}/cameras/{camera_id}/streams:
+    get:
+      summary: 获取直播流信息
+      description: 获取直播流信息
+      tags: [Stream]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - name: start
+          in: query
+          description: 返回的媒体流的起始索引
+          required: false
+          type: integer
+          default: 0
+        - name: limit
+          in: query
+          description: 最多返回的媒体流个数，最大100，最小0
+          required: false
+          type: integer
+          default: 10
+          maximum: 100
+          minimum: 0
+    post:
+      summary: 请求启动直播流
+      description:
+        可通过该API启动指定摄像头的媒体流。
+      tags: [Stream]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - $ref: '#/parameters/quality'
+      responses:
+        '200':
+          description: 媒体流ID
+          schema:
+            type: object
+            required:
+              - stream_id
+            properties:
+              stream_id:
+                type: string
+                description: 媒体流ID
+  /projects/{project_name}/cameras/{camera_id}/streams/{stream_id}:
+    get:
+      summary: 获取媒体流信息
+      description: 获取媒体流信息
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - $ref: '#/parameters/stream_id'
+      tags: [Stream]
+      responses:
+        '200':
+          description: 获取成功
+    delete:
+      summary: 结束媒体流
+      description: 结束媒体流
+      tags: [Stream]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/camera_id'
+        - $ref: '#/parameters/stream_id'
+      responses:
+        '200':
+          description: 成功接收媒体流
   /projects:
     get:
       summary: 获取项目列表
@@ -341,6 +427,12 @@ parameters:
     name: session_id
     in: path
     description: 用户媒体流会话ID
+    type: string
+    required: true
+  stream_id:
+    name: session_id
+    in: path
+    description: 媒体流ID
     type: string
     required: true
   format:

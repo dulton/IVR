@@ -16,6 +16,9 @@ import shutil
 import functools
 import base64
 import datetime
+import requests
+import time
+
 
 if sys.version_info[:2] < (3, 3):
     from distutils.spawn import find_executable
@@ -27,6 +30,7 @@ if sys.version_info[:1] < (3, ):
     STRING = unicode
 else:
     STRING = str
+
 
 class CustomJSONEncoder(json.JSONEncoder):
     def __init__(self, *args, **kwargs):
@@ -91,3 +95,19 @@ def import_method(path):
         attrs = parts[1:]
 
     return functools.reduce(getattr, attrs, module)
+
+
+def wait_util_http_resource_ready(url, timeout=5, retry_wait=5, retry=0):
+    while retry >= 0:
+        try:
+            status_code = requests.head(url, timeout=timeout).status_code
+            if status_code == 200:
+                return True
+            elif status_code == 404:
+                retry -= 1
+                time.sleep(retry_wait)
+                continue
+            else:
+                return False
+        except Exception:
+            return False

@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 from __future__ import unicode_literals, division
+from pyramid.response import Response
 from ivr.common.schema import Schema, Optional, Default, IntVal
 from ivr.ivc.rest.common import get_view, post_view, put_view, delete_view
 from ivr.ivc.rest.common import get_params_from_request
@@ -76,3 +77,4 @@ def update_device(request):
 @delete_view(route_name='device')
 def delete_device(request):
     request.registry.device_mngr.delete_device_by_id(request.matchdict['project_name'], request.matchdict['device_id'])
+    return Response(status=200)

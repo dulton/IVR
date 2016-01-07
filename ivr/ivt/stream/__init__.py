@@ -41,8 +41,7 @@ class Stream(object):
         self._stsw_stream_name = '_'.join((self.camera.name, self.type, self.quality))
         self.stsw_source = None
         self.stsw_senders = {}  # {<sender_type>: {<stream_id>: sender}}
-        self._stsw_source_mutex = RLock()
-        self._stsw_sender_mutex = RLock()
+        self._mutex = RLock()
         gevent.spawn(self._destroy_stsw_source_on_idle)
 
     def __str__(self):
@@ -55,46 +54,54 @@ class Stream(object):
         return False
 
     def rtmp_publish(self, rtmp_url, stream_id):
-        with self._stsw_source_mutex:
-            self._prepare_stsw_source()
-            with self._stsw_sender_mutex:
-                if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
-                    if stream_id in self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME]:
-                        log.warn('RTMP sender {0} for {1} already exits'.format(stream_id, self))
-                        return
-                sender_name = '_'.join(('rtmp', 'sender', self._stsw_stream_name))
-                sender = create_sender(
-                    sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
-                    sender_name=sender_name,
-                    dest_url=rtmp_url,
-                    log_file='sender_' + sender_name + '.log',
-                    dest_format='flv',
-                    stream_name=self._stsw_stream_name,
-                    extra_options={
-                        'vcodec': 'copy',
-                        'acodec': 'aac',
-                        'ar': '8000',
-                        'strict': '-2',
-                        'ac': '1',
-                        'b:a': '10k',
-                    })
-                if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
-                    self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME][stream_id] = sender
-                else:
-                    self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME] = {stream_id: sender}
-                log.warn('Create RTMP sender {0} for {1}'.format(stream_id, self))
+        with self._mutex:
+            self._create_stsw_rtmp_sender(rtmp_url, stream_id)
+            try:
+                self._prepare_stsw_source()
+            except Exception:
+                self._destroy_stsw_rtmp_sender(stream_id)
+                raise
 
-    def rtmp_stop_publish(self, stream_id):
-        with self._stsw_sender_mutex:
-            if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
-                sender = self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME].pop(stream_id, None)
-                if sender:
-                    sender.destroy()
-                    log.info('Destroy RTMP sender {0} for {1}'.format(stream_id, self))
-                    return
+    def _create_stsw_rtmp_sender(self, rtmp_url, stream_id):
+        # should be protected by mutex
+        if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
+            if stream_id in self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME]:
+                log.warn('RTMP sender {0} for {1} already exits'.format(stream_id, self))
+                return
+        sender_name = '_'.join(('rtmp', 'sender', self._stsw_stream_name))
+        sender = create_sender(
+            sender_type=NATIVE_FFMPEG_SENDER_TYPE_NAME,
+            sender_name=sender_name,
+            dest_url=rtmp_url,
+            log_file='sender_' + sender_name + '.log',
+            dest_format='flv',
+            stream_name=self._stsw_stream_name,
+            extra_options={
+                'vcodec': 'copy',
+                'acodec': 'aac',
+                'ar': '8000',
+                'strict': '-2',
+                'ac': '1',
+                'b:a': '10k',
+            })
+        if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
+            self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME][stream_id] = sender
+        else:
+            self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME] = {stream_id: sender}
+        log.info('Created RTMP sender {0} for {1}'.format(stream_id, self))
+
+    def _destroy_stsw_rtmp_sender(self, stream_id):
+        # should be protected by mutex
+        if NATIVE_FFMPEG_SENDER_TYPE_NAME in self.stsw_senders:
+            sender = self.stsw_senders[NATIVE_FFMPEG_SENDER_TYPE_NAME].pop(stream_id, None)
+            if sender:
+                sender.destroy()
+                log.info('Destroyed RTMP sender {0} for {1}'.format(stream_id, self))
+                return
         log.warning('Unable to destroy, RTMP sender {0} for {1} not exists'.format(stream_id, self))
 
     def _prepare_stsw_source(self):
+        # should be protected by mutex
         if not self.stsw_source:
             self.stsw_source = create_stream(source_type=self.stsw_source_type,
                                              stream_name=self._stsw_stream_name,
@@ -102,22 +109,24 @@ class Stream(object):
                                              log_file='source_' + self._stsw_stream_name + '.log')
             log.info('created STSW source for {0}'.format(self))
 
+    def rtmp_stop_publish(self, stream_id):
+        with self._mutex:
+            self._destroy_stsw_rtmp_sender(stream_id)
+
     def _destroy_stsw_source_on_idle(self):
         idle_cnt = 0
         while True:
             idle = False
             try:
                 time.sleep(30)
-                with self._stsw_source_mutex:
+                with self._mutex:
                     if self.stsw_source:
                         if self.stsw_source.get_client_list(0, 0).total_num == 0:
                             if idle_cnt > 2:
-                                # TODO small chance stream session is establishing,
-                                # and we may destroy it before sender just about to connect to it
                                 self.on = False
                                 self.stsw_source.destroy()
                                 self.stsw_source = None
-                                log.info('Destroy idel STSW source for {0}'.format(self))
+                                log.info('Destroyed idle STSW source for {0}'.format(self))
                             else:
                                 idle = True
             except Exception:
