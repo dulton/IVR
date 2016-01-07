@@ -187,6 +187,7 @@ class SAProject(Base):
     title = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     long_desc = Column(String(length=1024, convert_unicode=True), nullable=False, server_default="")
+    is_public = Column(SmallInteger, nullable=False, server_default=text("0"))
     ctime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     max_media_sessions = Column(Integer, nullable=False, server_default=text("0"))
@@ -209,11 +210,13 @@ class SAProject(Base):
         self.ctime = project.ctime
         self.utime = project.utime
         self.max_media_sessions = project.max_media_sessions
+        self.is_public = project.is_public
 
     def to_project(self, project_cls):
         return project_cls(name=self.name, title=self.title,
                            desc=self.desc, long_desc=self.long_desc,
                            max_media_sessions=self.max_media_sessions,
+                           is_public=self.is_public,
                            ctime=self.ctime, utime=self.utime)
 
 class SAUser(Base):

@@ -96,9 +96,16 @@ def main():
         # prepare REST API
         from pyramid.config import Configurator
         from pyramid.renderers import JSON
+        from pyramid.authorization import ACLAuthorizationPolicy
         from ivr.common.utils import CustomJSONEncoder
+        from ivr.ivc.rest.security import IvcJwtAuthenticationPolicy
+        authn_policy = IvcJwtAuthenticationPolicy()
+        authz_policy = ACLAuthorizationPolicy()
+
         pyramid_config = Configurator()
         pyramid_config.add_renderer(None, JSON(indent=4, check_circular=True, cls=CustomJSONEncoder))
+        # pyramid_config.set_authentication_policy(authn_policy)
+        # pyramid_config.set_authorization_policy(authz_policy)
         pyramid_config.include('ivr.ivc.rest', route_prefix='api/ivc/v1')
         pyramid_config.registry.project_mngr = project_mngr
         pyramid_config.registry.device_mngr = device_mngr

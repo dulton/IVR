@@ -82,7 +82,7 @@ def failed_validation(exc, request):
 
 
 @view_config(context=IVRError)
-def storlever_error_view(exc, request):
+def ivr_error_view(exc, request):
     response = request.response
     response.status_int = exc.http_status_code
     type, dummy, tb = sys.exc_info()
@@ -108,6 +108,14 @@ def not_found_view(exc, request):
             'exception': STRING(type),
             'traceback': []}
 
+@view_config(context=pyramid.exceptions.Forbidden)
+def not_found_view(exc, request):
+    response = request.response
+    response.status_int = exc.status_code
+    type, dummy, tb = sys.exc_info()
+    return {'info': 'Resource {0} for method {1} is Forbidden'.format(request.path, request.method),
+            'exception': STRING(type),
+            'traceback': []}
 
 @subscriber(NewResponse)
 def add_response_header(event):
