@@ -269,7 +269,60 @@ class SAUser(Base):
                         ltime=self.ltime)
 
 
+class SASessionLog(Base):
+    """ The SQLAlchemy declarative model class for a session log object. """
+    __tablename__ = 'sessionlog'
 
+    id = Column(BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    uuid = Column(CHAR(length=36, convert_unicode=True),
+                  nullable=False, index=True, unique=True)
+    project_name = Column(String(length=64, convert_unicode=True),
+                          ForeignKey('project.name', onupdate="CASCADE", ondelete="CASCADE"),
+                          nullable=False, server_default="")
+    camera_uuid = Column(CHAR(length=36, convert_unicode=True),
+                         ForeignKey('camera.uuid', onupdate="CASCADE"),  # should not be deleted when camera is deleted
+                         nullable=False, server_default="")
+    stream_format = Column(CHAR(length=16, convert_unicode=True),
+                           nullable=False, server_default="")
+    stream_quality = Column(CHAR(length=8, convert_unicode=True),
+                            nullable=False, server_default="")
+    ip = Column(BigInteger, nullable=False, server_default=text("0")) # only ipv4 supported
+    user_agent = Column(String(length=255, convert_unicode=True), nullable=False, server_default="") # overflow be careful
+    user = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+    secret_id = Column(String(lenth=64, convert_unicode=True), nullable=True)
+    start = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
+    end = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
+
+    def __repr__(self):
+        return "SA Camera Object(uuid:%s, name:%s)" % (
+            self.uuid, self.name
+        )
+
+    def from_session_log(self, session_log):
+        self.uuid = session_log.uuid
+        self.project_name = session_log.project_name
+        self.camera_uuid = session_log.camera_uuid
+        self.stream_format = session_log.stream_format
+        self.stream_quality = session_log.stream_quality
+        self.ip = session_log.ip
+        self.user_agent = session_log.user_agent
+        self.user = session_log.user
+        self.secret_id = session_log.secret_id
+        self.start = session_log.start
+        self.end = session_log.end
+
+    def to_session_log(self, session_log_cls):
+        session_log = session_log_cls(project_name=self.project_name,
+                                      camera_uuid = self.camera_uuid,
+                                      stream_format = self.stream_format,
+                                      stream_quality = self.stream_quality,
+                                      ip = self.ip,
+                                      user_agent = self.user_agent,
+                                      user = self.user,
+                                      secret_id = self.secret_id,
+                                      start = self.start,
+                                      end = self.end)
+        return session_log
 
 
 

@@ -8,16 +8,19 @@ log = logging.getLogger(__name__)
 
 
 class UserSessionLog(object):
-    def __init__(self, project_name, session_id, key_id, user_ip,
-                 camera_id, stream_format, stream_quality,
+    def __init__(self, project_name, session_id,
+                 camera_uuid, stream_format, stream_quality,
+                 ip, user_agent, secret_id=None, user=None,
                  start=None, end=None):
         self.project_name = project_name
-        self.session_id = session_id
-        self.key_id = key_id
-        self.user_ip = user_ip
-        self.camera_id = camera_id
+        self.uuid = session_id
+        self.camera_uuid = camera_uuid
         self.stream_format = stream_format
         self.stream_quality = stream_quality,
+        self.ip = ip
+        self.user_agent = user_agent
+        self.user = user  # user name given in request
+        self.secret_id = secret_id  # ID of the secret used to decode request's JWT
         if start is None and end is None:
             self.start = datetime.datetime.now()
         else:
@@ -25,7 +28,7 @@ class UserSessionLog(object):
             self.end = end
 
     def __str__(self):
-        return 'user session <{0}> of project <{1}>'.format(self.session_id, self.project_name)
+        return 'user session <{0}> of project <{1}>'.format(self.uuid, self.project_name)
 
     def is_end(self):
         return self.end is not None
