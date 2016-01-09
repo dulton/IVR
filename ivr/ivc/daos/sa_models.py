@@ -241,7 +241,7 @@ class SAUser(Base):
 
     projects = relationship('SAProject', secondary=project_user_relation,
                             back_populates="users")
-    access_keys = relationship("SAAccessKey", order_by=SAAccessKey.id, back_populates="user")
+    access_keys = relationship("SAAccessKey", order_by="SAAccessKey.id", back_populates="user")
 
     def __repr__(self):
         return "SA User Object(name:%s)" % (
@@ -290,7 +290,7 @@ class SASessionLog(Base):
     ip = Column(BigInteger, nullable=False, server_default=text("0")) # only ipv4 supported
     user_agent = Column(String(length=255, convert_unicode=True), nullable=False, server_default="") # overflow be careful
     user = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
-    secret_id = Column(String(lenth=64, convert_unicode=True), nullable=True)
+    secret_id = Column(String(length=64, convert_unicode=True), nullable=True)
     start = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     end = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
 
@@ -325,6 +325,7 @@ class SASessionLog(Base):
                                       end = self.end)
         return session_log
 
+
 class SAAccessKey(Base):
     """ The SQLAlchemy declarative model class for a camera object. """
     __tablename__ = 'access_key'
@@ -345,7 +346,6 @@ class SAAccessKey(Base):
 
     user = relationship("SAUser", back_populates="access_keys")
 
-
     def __repr__(self):
         return "SA AccessKey Object(key_id:%s)" % (
             self.key_id
@@ -365,3 +365,5 @@ class SAAccessKey(Base):
                               username=self.username, key_type=self.key_type,
                               enabled=self.enabled, desc=self.desc,
                               ctime=self.ctime)
+
+
