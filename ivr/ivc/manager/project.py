@@ -8,7 +8,7 @@ import datetime
 class Project(object):
 
     def __init__(self, name, title="default", desc="", long_desc="",
-                 max_media_sessions=0, is_public=0,
+                 max_media_sessions=0, is_public=True,
                  ctime=None, utime=None):
         self.name = name
         self.title = title

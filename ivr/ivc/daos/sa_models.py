@@ -187,7 +187,7 @@ class SAProject(Base):
     title = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
     long_desc = Column(String(length=1024, convert_unicode=True), nullable=False, server_default="")
-    is_public = Column(SmallInteger, nullable=False, server_default=text("0"))
+    is_public = Column(Boolean(), nullable=False, server_default=text("0"))
     ctime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
     max_media_sessions = Column(Integer, nullable=False, server_default=text("0"))
@@ -241,6 +241,7 @@ class SAUser(Base):
 
     projects = relationship('SAProject', secondary=project_user_relation,
                             back_populates="users")
+    access_keys = relationship("SAAccessKey", order_by=SAAccessKey.id, back_populates="user")
 
     def __repr__(self):
         return "SA User Object(name:%s)" % (
@@ -324,5 +325,43 @@ class SASessionLog(Base):
                                       end = self.end)
         return session_log
 
+class SAAccessKey(Base):
+    """ The SQLAlchemy declarative model class for a camera object. """
+    __tablename__ = 'access_key'
+
+    id = Column(BigInteger, nullable=False, primary_key=True, autoincrement=True)
+    key_id = Column(String(length=32, convert_unicode=True),
+                  nullable=False, index=True, unique=True)
+    secret = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+
+    desc = Column(String(length=255, convert_unicode=True), nullable=False, server_default="")
+
+    username = Column(String(length=64, convert_unicode=True),
+                          ForeignKey('user.username', onupdate="CASCADE", ondelete="CASCADE"),
+                          nullable=False, server_default="")
+    enabled = Column(Boolean(), nullable=False, server_default=text("0"))
+    key_type = Column(SmallInteger, nullable=False, server_default=text("0"))
+    ctime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
+
+    user = relationship("SAUser", back_populates="access_keys")
 
 
+    def __repr__(self):
+        return "SA AccessKey Object(key_id:%s)" % (
+            self.key_id
+        )
+
+    def from_access_key(self, access_key):
+        self.key_id = access_key.key_id
+        self.secret = access_key.secret
+        self.key_type = access_key.key_type
+        self.username = access_key.username
+        self.desc = access_key.desc
+        self.enabled = access_key.enabled
+        self.ctime = access_key.ctime
+
+    def to_access_key(self, access_key_cls):
+        return access_key_cls(key_id=self.key_id, secret=self.secret,
+                              username=self.username, key_type=self.key_type,
+                              enabled=self.enabled, desc=self.desc,
+                              ctime=self.ctime)
