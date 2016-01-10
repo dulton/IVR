@@ -20,37 +20,33 @@ class SAAccessKeyDao(object):
             access_key = sa_access_key.to_access_key(AccessKey)
         return access_key
 
-    def get_list(self, start_index=0, max_number=65535):
+    def get_list(self, key_type=None, username=None, start_index=0, max_number=65535):
         access_key_list = []
         with self._dao_context_mngr.context() as context:
             # in a transaction
             session = context.session
             query = session.query(SAAccessKey)
+            if username is not None and len(username) != 0:
+                query = query.filter(SAAccessKey.username == username)
+            if key_type is not None:
+                query = query.filter(SAAccessKey.key_type == key_type)
             for sa_access_key in query[start_index:max_number]:
-                access_key = sa_access_key.to_user(AccessKey)
+                access_key = sa_access_key.to_access_key(AccessKey)
                 access_key_list.append(access_key)
         return access_key_list
 
-    def get_count(self):
+    def get_count(self, key_type=None, username=None):
         with self._dao_context_mngr.context() as context:
             # in a transaction
             session = context.session
             query = session.query(SAAccessKey)
+            if username is not None and len(username) != 0:
+                query = query.filter(SAAccessKey.username == username)
+            if key_type is not None:
+                query = query.filter(SAAccessKey.key_type == key_type)
             cnt = query.count()
         return cnt
 
-    def get_list_by_username(self, username):
-        access_key_list = []
-        with self._dao_context_mngr.context() as context:
-            # in a transaction
-            session = context.session
-            query = session.query(SAAccessKey)
-            if username is not None:
-                query = query.filter(SAAccessKey.username == username)
-            for sa_access_key in query:
-                access_key = sa_access_key.to_user(AccessKey)
-                access_key_list.append(access_key)
-        return access_key_list
 
     def add(self, access_key):
         with self._dao_context_mngr.context() as context:
@@ -74,7 +70,7 @@ class SAAccessKeyDao(object):
             # in a transaction
             session = context.session
             sa_access_key = session.query(SAAccessKey).filter(SAAccessKey.key_id == access_key.key_id).one()
-            sa_access_key.from_user(access_key)
+            sa_access_key.from_access_key(access_key)
 
 
 
@@ -82,65 +78,52 @@ def test_main():
     from .sa_dao_context_mngr import AlchemyDaoContextMngr
     from sqlalchemy import create_engine
     from .sa_project_dao import SAProjectDao
-    from ..manager.project import Project
+    from .sa_user_dao import SAUserDao
+    from ..manager.user import User
     # import gevent
     # dialects.registry.register("sqlite", "streamswitch.wsgiapp.utils.sqlalchemy_gevent", "SqliteDialect")
     engine = create_engine("mysql+pymysql://test:123456@127.0.0.1/ivc_test", echo=True)
 
     dao_context_mngr = AlchemyDaoContextMngr(engine)
+    access_key_dao = SAAccessKeyDao(dao_context_mngr)
     user_dao = SAUserDao(dao_context_mngr)
-    project_dao = SAProjectDao(dao_context_mngr)
     # import pdb
     # pdb.set_trace()
     with dao_context_mngr.context() as context:
 
-        project = Project(name="test_project", title="test_project_title",
-                          desc="test_project_desc")
-        project_dao.add(project)
-
-        user_list = user_dao.get_list_by_project(project_name="test_project")
-        user_count = user_dao.get_count_by_project(project_name="test_project")
-        print("user list (%d) at begin:" % user_count)
-        print(user_list)
-        assert(user_count == 0)
-
         user = User(username="test_user", desc="test_user_desc")
         user_dao.add(user)
 
-        user_dao.join_to_project(user, project)
+        access_key_list = access_key_dao.get_list(username="test_user")
+        access_key_count = access_key_dao.get_count(username="test_user")
+        print("access key list (%d) at begin:" % access_key_count)
+        print(access_key_list)
+        print(access_key_count == 0)
 
-        user_list = user_dao.get_list_by_project(filter_name="username", filter_value="t_u",
-                                                    project_name="test_project")
-        user_count = user_dao.get_count_by_project(filter_name="username", filter_value="t_u",
-                                                    project_name="test_project")
-        print("user list (%d) after add:" % user_count)
-        print(user_list)
-        assert(user_count == 1)
 
-        project_list = user_dao.get_user_projects(user)
-        print("project list (%d) for user %s after join:" % (len(project_list), user.username))
-        print(project_list)
-        assert(len(project_list) == 1)
+        access_key = AccessKey(key_id="test_key_id", secret="test_key_secret", username="test_user")
+        access_key_dao.add(access_key)
 
-        user = user_dao.get_by_username("test_user")
-        user.desc = "abc"
-        user_dao.update(user)
+        access_key_list = access_key_dao.get_list(username="test_user")
+        access_key_count = access_key_dao.get_count(username="test_user")
+        print("access key list (%d) after add:" % access_key_count)
+        print(access_key_list)
+        print(access_key_count == 1)
 
-        user_test = user_dao.get_by_username("test_user")
-        assert(user_test.desc == user.desc)
+        access_key = access_key_dao.get_by_key_id("test_key_id")
+        access_key.desc = "abc"
+        access_key_dao.update(access_key)
 
-        user_dao.leave_from_project(user, project)
-        project_list = user_dao.get_user_projects(user)
-        print("project list (%d) for user %s after leave:" % (len(project_list), user.username))
-        print(project_list)
-        assert(len(project_list) == 0)
+        access_key_test = access_key_dao.get_by_key_id("test_key_id")
+        assert(access_key_test.desc == access_key.desc)
+
+
+        access_key_dao.delete_by_key_id("test_key_id")
+
+        access_key_list = access_key_dao.get_list(username="test_user")
+        access_key_count = access_key_dao.get_count(username="test_user")
+        print("access key list (%d) after del:" % access_key_count)
+        print(access_key_list)
+        print(access_key_count == 0)
 
         user_dao.delete_by_username("test_user")
-
-        user_list = user_dao.get_list_by_project(project_name="test_project")
-        user_count = user_dao.get_count_by_project(project_name="test_project")
-        print("user list (%d) after del:" % user_count)
-        print(user_list)
-        assert(user_count == 0)
-
-        project_dao.delete_by_name("test_project")

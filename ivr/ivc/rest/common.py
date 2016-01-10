@@ -109,7 +109,7 @@ def not_found_view(exc, request):
             'traceback': []}
 
 @view_config(context=pyramid.exceptions.Forbidden)
-def not_found_view(exc, request):
+def forbidden_view(exc, request):
     response = request.response
     response.status_int = exc.status_code
     type, dummy, tb = sys.exc_info()
@@ -152,6 +152,10 @@ def get_params_from_request(request, schema=None):
         params = schema.validate(params)
 
     return params
+
+
+def get_token_from_request(request):
+    return None
 
 
 class CustomJSONEncoder(json.JSONEncoder):

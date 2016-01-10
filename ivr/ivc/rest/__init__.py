@@ -10,4 +10,5 @@ def includeme(config):
     config.include(__name__ + '.session')
     config.include(__name__ + '.stream')
     config.include(__name__ + '.user_views')
+    config.include(__name__ + '.access_key_views')
     config.scan()             # scan to register view callables, must be last statement
