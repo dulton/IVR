@@ -19,6 +19,7 @@ from ivr.ivc.manager.session import UserSessionManager
 from ivr.ivc.manager.stream import StreamManager
 from ivr.ivc.manager.project import ProjectManager
 from ivr.ivc.manager.user import UserManager
+from ivr.ivc.manager.sessionlog import UserSessionLogManager
 from ivr.ivc.manager.access_key import AccessKeyManager
 
 config_schema = Schema({
@@ -57,6 +58,7 @@ def main():
             from ivr.ivc.daos.sa_device_dao import SADeviceDao
             from ivr.ivc.daos.sa_project_dao import SAProjectDao
             from ivr.ivc.daos.sa_user_dao import SAUserDao
+            from ivr.ivc.daos.sa_user_session_log_dao import SAUserSessionLogDao
             from ivr.ivc.daos.sa_access_key_dao import SAAccessKeyDao
             engine = engine_from_config(config['sqlalchemy'], prefix='')
             dao_context_mngr = AlchemyDaoContextMngr(engine)
@@ -66,8 +68,9 @@ def main():
             user_dao = SAUserDao(dao_context_mngr)
             access_key_dao = SAAccessKeyDao(dao_context_mngr)
             from ivr.ivc.dummy_daos import UserSessionDAO, StreamDAO
-            stream_dao = StreamDAO()
             user_session_dao = UserSessionDAO()
+            user_session_log_dao = SAUserSessionLogDao(dao_context_mngr)
+            stream_dao = StreamDAO()
         else:
             from ivr.ivc.dummy_daos import CameraDAO, UserSessionDAO, StreamDAO, DeviceDAO
             camera_dao = CameraDAO()
@@ -91,11 +94,11 @@ def main():
                                     config['rtmp_url_prefix'],
                                     config['hls_url_prefix'],
                                     stream_ttl=config['stream_ttl'])
+        user_session_log_mngr = UserSessionLogManager(user_session_log_dao)
         user_session_mngr = UserSessionManager(user_session_dao,
                                                stream_mngr,
+                                               user_session_log_mngr,
                                                config['user_session_ttl'])
-
-
         user_mngr = UserManager(user_dao, project_dao, dao_context_mngr)
         access_key_mngr = AccessKeyManager(access_key_dao, user_dao, dao_context_mngr)
 
@@ -118,6 +121,7 @@ def main():
         pyramid_config.registry.camera_mngr = camera_mngr
         pyramid_config.registry.stream_mngr = stream_mngr
         pyramid_config.registry.user_session_mngr = user_session_mngr
+        pyramid_config.registry.user_session_log_mngr = user_session_log_mngr
         pyramid_config.registry.user_mngr = user_mngr
         pyramid_config.registry.access_key_mngr = access_key_mngr
         if config.get('debug'):

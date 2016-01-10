@@ -10,7 +10,7 @@ based on the SQLAlchemy's ORM
 
 """
 from __future__ import unicode_literals, division
-from sqlalchemy import Column, ForeignKey, text, Table
+from sqlalchemy import Column, ForeignKey, text, Table, Index
 from sqlalchemy.orm import relationship
 from sqlalchemy.types import Integer, String, Float, Text, \
     BigInteger, CHAR, Boolean, TIMESTAMP, SmallInteger
@@ -290,12 +290,13 @@ class SASessionLog(Base):
                            nullable=False, server_default="")
     stream_quality = Column(CHAR(length=8, convert_unicode=True),
                             nullable=False, server_default="")
-    ip = Column(BigInteger, nullable=False, server_default=text("0")) # only ipv4 supported
+    ip = Column(String(length=39, convert_unicode=True), nullable=False, server_default=text("0")) # ipv4 or ipv6 (ipv6 string is maximum 39 characters long)
     user_agent = Column(String(length=255, convert_unicode=True), nullable=False, server_default="") # overflow be careful
-    user = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
-    secret_id = Column(String(length=64, convert_unicode=True), nullable=True)
+    username = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+    subuser = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
     start = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     end = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
+    __table_args__ = (Index('sessionlog_list_index', project_name.asc(), end.asc(), uuid.asc()), )    # composit index for sessionlog/billing report pagination
 
     def __repr__(self):
         return "SA Camera Object(uuid:%s, name:%s)" % (
@@ -310,20 +311,21 @@ class SASessionLog(Base):
         self.stream_quality = session_log.stream_quality
         self.ip = session_log.ip
         self.user_agent = session_log.user_agent
-        self.user = session_log.user
-        self.secret_id = session_log.secret_id
+        self.username = session_log.username
+        self.subuser = session_log.subuser
         self.start = session_log.start
         self.end = session_log.end
 
     def to_session_log(self, session_log_cls):
         session_log = session_log_cls(project_name=self.project_name,
+                                      uuid=self.uuid,
                                       camera_uuid = self.camera_uuid,
                                       stream_format = self.stream_format,
                                       stream_quality = self.stream_quality,
                                       ip = self.ip,
                                       user_agent = self.user_agent,
-                                      user = self.user,
-                                      secret_id = self.secret_id,
+                                      username = self.username,
+                                      subuser = self.subuser,
                                       start = self.start,
                                       end = self.end)
         return session_log

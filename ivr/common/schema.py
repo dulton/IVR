@@ -2,6 +2,7 @@
 from __future__ import unicode_literals, division
 import re
 import sys
+import datetime
 from inspect import getargspec
 from functools import wraps
 
@@ -238,6 +239,19 @@ class StrRe(object):
             raise SchemaError('%s does not match regular express(%s)' % (data, self.pattern_str), self._error)
         else:
             return data
+
+
+class Datetime(object):
+    def __init__(self, error=None):
+        self._error = error
+
+    def validate(self, data):
+        if isinstance(data, datetime.datetime):
+            return data
+        elif isinstance(data, STRING):
+            return datetime.datetime.strptime(data, '%Y-%m-%dT%H:%M:%S')
+        else:
+            raise SchemaError('%s is not in datetime format')
 
 
 class Use(object):

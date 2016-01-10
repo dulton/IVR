@@ -51,7 +51,7 @@ paths:
                 type: array
                 description: 摄像头列表
                 items:
-                  - $ref: '#/definitions/camera'
+                  $ref: '#/definitions/camera'
     post:
       summary: 添加摄像头
       tags: [Camera]
@@ -137,7 +137,7 @@ paths:
                 type: array
                 description: 设备列表
                 items:
-                  - $ref: '#/definitions/device'
+                  $ref: '#/definitions/device'
     post:
       summary: 添加设备
       tags: [Device]
@@ -371,7 +371,7 @@ paths:
                 type: array
                 description: 项目列表
                 items:
-                  - $ref: '#/definitions/project'
+                  $ref: '#/definitions/project'
     post:
       summary: 创建项目
       tags: [Project]
@@ -403,6 +403,63 @@ paths:
       responses:
         '200':
           description: 成功删除项目
+  /projects/{project_name}/session_logs:
+    get:
+      summary: 获取用户观看历史记录列表
+      description: 获取用户观看历史记录列表
+      tags: [Session Log]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - name: start_from
+          in: query
+          description: 搜索条件：于此时间点后结束的观看记录，格式：YYYY-mm-ddTHH:MM:SS
+          required: false
+          type: string
+        - name: end_to
+          in: query
+          description: 搜索条件：于此时间点前结束观看的记录，格式：YYYY-mm-ddTHH:MM:SS
+          required: false
+          type: String
+        - name: limit
+          in: query
+          description: 最多返回的历史记录条数
+          required: false
+          type: integer
+        - name: last_end_time
+          in: query
+          description: 上次查询中最后一条记录的观看结束时间(end)
+          required: false
+          type: string
+        - name: last_session_id
+          in: query
+          description: 上次查询中最后一条记录的session ID
+          required: false
+          type: string
+      responses:
+        '200':
+          description: 观看记录列表
+          schema:
+            type: object
+            required:
+              - list
+            properties:
+              list:
+                type: array
+                description: 观看记录列表
+                items:
+                  $ref: '#/definitions/session_log'
+  /projects/{project_name}/session_logs/{session_id}:
+    get:
+      summary: 获取用户观看历史信息
+      tags: [Session Log]
+      parameters:
+        - $ref: '#/parameters/project_name'
+        - $ref: '#/parameters/session_id'
+      responses:
+        '200':
+          description: 用户观看历史信息
+          schema:
+            $ref: '#/definitions/session_log'
 
 parameters:
   project_name:
@@ -767,4 +824,52 @@ definitions:
       ready:
         type: boolean
         description: 直播流是否已经准备就绪
+  session_log:
+    type: object
+    required:
+      - project_name
+      - uuid
+      - start
+      - end
+      - camera_uuid
+      - stream_format
+      - stream_quality
+      - ip
+      - user_agent
+      - username
+      - subuser
+    properties:
+      project_name:
+        type: string
+        description: 项目名称
+      uuid:
+        type: string
+        description: 观看会话ID
+      start:
+        type: string
+        description: 观看起始时间
+      end:
+        type: string
+        description: 观看结束时间
+      camera_uuid:
+        type: string
+        description: 观看的摄像头的ID
+      stream_format:
+        type: string
+        descrtiption: 观看视频流的格式
+      stream_quality:
+        type: string
+        description: 观看视频流的质量
+      ip:
+        type: string
+        description: 用户的公网IP
+      user_agent:
+        type: string
+        decription: 用户使用的客户端
+      username:
+        type: string
+        descriptiopn: 用于签名请求token的用户的用户名
+      subuser:
+        type: string
+        desctiption: 观看者的用户名
 

@@ -46,7 +46,7 @@ class CustomJSONEncoder(json.JSONEncoder):
             o = base64.b64encode(o).decode()
             return o
         elif isinstance(o, datetime.datetime):
-            return STRING(o)
+            return STRING(o.strftime('%Y-%m-%dT%H:%M:%S'))
         elif isinstance(o, set):
             return list(o)
         elif hasattr(o, '__json__'):

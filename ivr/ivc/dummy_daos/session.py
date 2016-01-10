@@ -25,20 +25,20 @@ class UserSessionDAO(object):
     def add_user_session(self, session):
         self._sessions.append(session)
 
-    def get_running_count(self, project_name=None, camera_id=None):
+    def get_running_count(self, project_name=None, camera_uuid=None):
         cnt = 0
         for s in self._sessions:
-            if (project_name is None or project_name == s.project_name) and (camera_id is None or (camera_id == s.camera_id)):
+            if (project_name is None or project_name == s.project_name) and (camera_uuid is None or (camera_uuid == s.camera_uuid)):
                 cnt += 1
         return cnt
 
-    def get_running_list(self, project_name=None, camera_id=None, start_index=0, max_number=65535):
+    def get_running_list(self, project_name=None, camera_uuid=None, start_index=0, max_number=65535):
         session_list = []
         index = 0
         if max_number == 0:
             return session_list
         for s in self._sessions:
-            if (project_name is None or project_name == s.project_name) and (camera_id is None or (camera_id == s.camera_id)):
+            if (project_name is None or project_name == s.project_name) and (camera_uuid is None or (camera_uuid == s.camera_iuuid)):
                 if index >= start_index:
                     session_list.append(s)
                 index += 1
@@ -46,27 +46,27 @@ class UserSessionDAO(object):
                     break
         return session_list
 
-    def get_timeout_list(self, last_keepalive, project_name=None, camera_id=None, max_number=65535):
+    def get_timeout_list(self, last_keepalive, project_name=None, camera_uuid=None, max_number=65535):
         session_list = []
         if max_number <= 0:
             return session_list
         for s in self._sessions:
             if (project_name is None or (project_name == s.project_name)) \
-                    and (camera_id is None or (camera_id == s.camera_id)) \
+                    and (camera_uuid is None or (camera_uuid == s.camera_uuid)) \
                     and (s.end is None and (s.last_keepalive < last_keepalive)):
                 session_list.append(s)
                 if len(session_list) >= max_number:
                     break
         return session_list
 
-    def get_by_id(self, project_name, session_id):
+    def get_by_id(self, project_name, uuid):
         for session in self._sessions:
-            if session.project_name == project_name and session.session_id == session_id:
+            if session.project_name == project_name and session.uuid == uuid:
                 return session
 
     def update(self, session):
         for i, s in enumerate(self._sessions):
-            if s.project_name == session.project_name and s.session_id == session.session_id:
+            if s.project_name == session.project_name and s.uuid == session.uuid:
                 if session.end is None:
                     self._sessions[i] = session
                 else:

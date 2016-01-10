@@ -115,7 +115,7 @@ class RPCSession(object):
                     result = m()
                 msg = {'seq': msg['seq'], 'resp': result}
             except Exception as e:
-                msg = {'err': {'code': -1, 'msg': STRING(e)}}
+                msg = {'seq': msg['seq'], 'err': {'code': -1, 'msg': STRING(e)}}
             self._transport.send_packet(self._encoder.marshal(msg))
         else:
             raise InvalidRPCRequest("RPC request {0} not implemented".format(method))

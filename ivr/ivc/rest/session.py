@@ -56,8 +56,11 @@ def request_user_session(request):
         request.matchdict['camera_id'],
         stream_format=req['format'],
         stream_quality=req['quality'],
-        user=req['user'],
-        create=req['create']
+        create=req['create'],
+        ip=request.client_addr or '',
+        user_agent=request.user_agent,
+        username='',
+        subuser=req['user']
     )
     return {'url': url, 'session_id': session_id}
 

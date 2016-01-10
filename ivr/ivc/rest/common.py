@@ -3,7 +3,6 @@ from __future__ import unicode_literals, division
 import sys
 import traceback
 import copy
-import json
 import inspect
 
 import pyramid.exceptions
@@ -109,7 +108,7 @@ def not_found_view(exc, request):
             'traceback': []}
 
 @view_config(context=pyramid.exceptions.Forbidden)
-def forbidden_view(exc, request):
+def not_found_view(exc, request):
     response = request.response
     response.status_int = exc.status_code
     type, dummy, tb = sys.exc_info()
@@ -156,26 +155,3 @@ def get_params_from_request(request, schema=None):
 
 def get_token_from_request(request):
     return None
-
-
-class CustomJSONEncoder(json.JSONEncoder):
-    def __init__(self, *args, **kwargs):
-        # dirty hack to keep 'default' method intact
-        kwargs.pop('default', None)
-        super(CustomJSONEncoder, self).__init__(*args, **kwargs)
-
-    def default(self, o):
-        try:
-            return json.JSONEncoder.default(self, o)
-        except TypeError:
-            if isinstance(o, set):
-                return list(o)
-            elif hasattr(o, '__json__'):
-                return o.__json__()
-            elif hasattr(o, '__dict__'):
-                obj_dict = {}
-                for k, v in o.__dict__.iteritems():
-                    if not k.startswith('_'):
-                        obj_dict[k] = v
-                return obj_dict
-
