@@ -234,6 +234,7 @@ class SAUser(Base):
     flags = Column(Integer, nullable=False, server_default=text("0"))
     cellphone = Column(String(length=32, convert_unicode=True), nullable=False, server_default="")
     email = Column(String(length=64, convert_unicode=True), nullable=False, server_default="")
+    user_type = Column(SmallInteger, nullable=False, server_default=text("0"))
 
     ctime = Column(TIMESTAMP(), nullable=False, server_default=text("0"))
     utime = Column(TIMESTAMP(), nullable=False, server_default=text("CURRENT_TIMESTAMP"))
@@ -260,12 +261,14 @@ class SAUser(Base):
         self.ctime = user.ctime
         self.utime = user.utime
         self.ltime = user.ltime
+        self.user_type = user.user_type
 
     def to_user(self, user_cls):
         return user_cls(username=self.username, password=self.password,
                         title=self.title,
                         desc=self.desc, long_desc=self.long_desc,
                         flags=self.flags, cellphone=self.cellphone,
+                        user_type=self.user_type,
                         email=self.email, ctime=self.ctime, utime=self.utime,
                         ltime=self.ltime)
 

@@ -8,9 +8,12 @@ import datetime
 class User(object):
     USER_FLAG_PRIVILEGE = 0x1
 
+    USER_TYPE_NORMAL = 0
+    USER_TYPE_ADMIN = 0
+
 
     def __init__(self, username, password="", title="default", desc="", long_desc="",
-                 flags=0, cellphone="", email="",
+                 flags=0, cellphone="", email="", user_type = USER_TYPE_NORMAL,
                  ctime=None, utime=None, ltime=None):
         self.username = username
         self.password = password
@@ -20,6 +23,7 @@ class User(object):
         self.flags = flags
         self.cellphone = cellphone
         self.email = email
+        self.user_type = user_type
         if ctime is None or utime is None or ltime is None:
             now = datetime.datetime.now()
         else:
@@ -95,16 +99,12 @@ class UserManager(object):
                 raise IVRError("User Not Found", 404)
         return user
 
-    def add_user(self, username, is_privilege=False, **kwargs):
+    def add_user(self, username, **kwargs):
         with self._dao_context_mngr.context():
             user = self._user_dao.get_by_username(username)
             if user is not None:
                 raise IVRError("Username Exist", 400)
             user = User(username, **kwargs)
-            if is_privilege:
-                user.flags |= User.USER_FLAG_PRIVILEGE
-            else:
-                user.flags &= ~User.USER_FLAG_PRIVILEGE
             self._user_dao.add(user)
             user = self._user_dao.get_by_username(username)
         return user
@@ -114,14 +114,9 @@ class UserManager(object):
             user = self._user_dao.get_by_username(username)
             if user is None:
                 raise IVRError("User Not Found", 404)
-            is_privilege = (user.flags & User.USER_FLAG_PRIVILEGE) != 0
             for (k, v) in kwargs.items():
                 if k in ("password", "title", "desc", "long_desc", "cellphone", "email"):
                     setattr(user, k, v)
-            if is_privilege:
-                user.flags |= User.USER_FLAG_PRIVILEGE
-            else:
-                user.flags &= ~User.USER_FLAG_PRIVILEGE
             user.utime = datetime.datetime.now()
             self._user_dao.update(user)
         return user

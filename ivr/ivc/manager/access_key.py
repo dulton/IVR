@@ -90,8 +90,8 @@ class AccessKeyManager(object):
             if user is None:
                 raise IVRError("User Not Found", 404)
             if access_key.key_type == AccessKey.KEY_TYPE_PRIVILEGE and \
-               (user.flags & User.USER_FLAG_PRIVILEGE) == 0:
-                raise IVRError("key of KEY_TYPE_PRIVILEGE type cannot be created by user %s" % username,
+               user.user_type != user.USER_TYPE_ADMIN:
+                raise IVRError("only admin user can owns KEY_TYPE_PRIVILEGE key",
                                400)
             access_key_list = self._key_dao.get_list(username=username)
             if len(access_key_list) >= self.MAX_KEYS_PER_USER:
