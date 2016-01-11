@@ -9,11 +9,11 @@ class User(object):
     USER_FLAG_PRIVILEGE = 0x1
 
     USER_TYPE_NORMAL = 0
-    USER_TYPE_ADMIN = 0
+    USER_TYPE_ADMIN = 1
 
 
     def __init__(self, username, password="", title="default", desc="", long_desc="",
-                 flags=0, cellphone="", email="", user_type = USER_TYPE_NORMAL,
+                 flags=0, cellphone="", email="", user_type=USER_TYPE_NORMAL,
                  ctime=None, utime=None, ltime=None):
         self.username = username
         self.password = password

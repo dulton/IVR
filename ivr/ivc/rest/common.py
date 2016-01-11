@@ -154,4 +154,10 @@ def get_params_from_request(request, schema=None):
 
 
 def get_token_from_request(request):
-    return None
+    auth_str = request.headers.get('Authorization', None)
+    if auth_str is None:
+        return None
+    schema, sep, token = auth_str.strip().partition(' ')
+    if schema != 'Bearer':
+        return None
+    return token
