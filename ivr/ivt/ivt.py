@@ -14,10 +14,12 @@ log = logging.getLogger(__name__)
 
 
 class IVT(object):
-    def __init__(self, project_name, login_code, keepalive_interval, cameras):
+    def __init__(self, project_name, login_code, login_passwd, keepalive_interval, cameras, preview_upload_server=None):
         self._project_name = project_name
         self.id = login_code
+        self.login_passwd = login_passwd
         self.keepalive_interval = keepalive_interval
+        self.preview_upload_server = preview_upload_server
         self._session = None
         self._cameras = {}
         self.name = '_'.join((self._project_name, self.id))
