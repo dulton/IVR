@@ -2,11 +2,16 @@ ivc: ws://127.0.0.1:5000/ivc
 project: jiguang
 login_code: ivt1
 login_passwd: passwd
-keepalive_interval: 20  # send keepalive to IVC every x seconds
+# 发送给IVC的心跳间隔，单位秒
+keepalive_interval: 20
+# 预览图片的上传服务器地址
+preview_upload_server: '127.0.0.1:6000'
 cameras:
   - type: rtsp
     channel: 0
     ip: 192.168.2.100
+    # 预览图片上传间隔
+    preview_upload_interval: 900
     streams:
       - type: rtsp
         quality: hd

@@ -8,7 +8,7 @@ import urllib
 
 from ivr.common.logger import default_config as default_log_config
 from ivr.common.ws import WSClientTransport
-from ivr.common.schema import Schema, Use, EnumVal, IntVal, ListVal, DoNotCare
+from ivr.common.schema import Schema, Use, EnumVal, IntVal, ListVal, DoNotCare, Optional
 from ivr.ivt.ivt import IVT
 from ivr.common.confparser import parse as parse_conf
 from ivr.common.utils import STRING
@@ -24,6 +24,7 @@ config_schema = Schema({
     'login_code': Use(STRING),
     'login_passwd': Use(STRING),
     'keepalive_interval': IntVal(min=1, max=1800),
+    Optional('preview_upload_server'): Use(STRING),
     'cameras': ListVal({
         'channel': IntVal(min=0),
         'type': Use(STRING),
@@ -50,7 +51,14 @@ def main():
             config = parse_conf('ivt.yml')
         config = config_schema.validate(config)
 
-        ivt = IVT(config['project'], config['login_code'], config['keepalive_interval'], config['cameras'])
+        ivt = IVT(
+            config['project'],
+            config['login_code'],
+            config['login_passwd'],
+            config['keepalive_interval'],
+            config['cameras'],
+            preview_upload_server=config.get('preview_upload_server')
+        )
 
         # start port
         port = SubProcessPort(
