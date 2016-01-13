@@ -15,6 +15,8 @@ def includeme(config):
     config.add_route('project_user_list', '/projects/{project_name}/users')
     config.add_route('user', '/users/{username}')
     config.add_route('user_project_list', '/users/{username}/projects')
+    config.add_route('user_password', '/users/{username}/password')
+    config.add_route('user_password_reset', '/users/{username}/password_reset')
 
 
 get_user_list_schema = Schema({
@@ -83,7 +85,6 @@ def get_user(request):
     return user
 
 mod_user_schema = Schema({
-    Optional("password"): StrRe(r"^\w+$"),   # not empty
     Optional("title"):  StrRe(r"^\S+$"),
     Optional("desc"): StrRe(r"^\S*$"),
     Optional("long_desc"): StrRe(r"^\S*$"),
@@ -99,6 +100,36 @@ def put_user(request):
     params = get_params_from_request(request, mod_user_schema)
     user = request.registry.user_mngr.mod_user(username, **params)
     return user
+
+mod_user_password_schema = Schema({
+    "old_password": StrRe(r"^\w+$"),   # not empty
+    "new_password": StrRe(r"^\w+$"),   # not empty
+    DoNotCare(Use(STRING)): object  # for all other key we don't care
+})
+
+
+@put_view(route_name='user_password')
+def put_user_password(request):
+    username = request.matchdict['username']
+    params = get_params_from_request(request, mod_user_password_schema)
+    request.registry.user_mngr.change_password(username,
+                                               params['old_password'],
+                                               params['new_password'])
+    return Response(status=200)
+
+reset_user_password_schema = Schema({
+    "new_password": StrRe(r"^\w+$"),   # not empty
+    DoNotCare(Use(STRING)): object  # for all other key we don't care
+})
+
+
+@post_view(route_name='user_password_reset')
+def post_user_password_reset(request):
+    username = request.matchdict['username']
+    params = get_params_from_request(request, reset_user_password_schema)
+    request.registry.user_mngr.reset_password(username,
+                                              params['new_password'])
+    return Response(status=200)
 
 
 @delete_view(route_name='user')

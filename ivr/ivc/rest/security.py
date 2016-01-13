@@ -217,7 +217,7 @@ new_jwt_schema = Schema({
 })
 
 
-@post_view(route_name='test_jwt_list')
+@post_view(route_name='jwt_list')
 def post_test_jwt_list(request):
     params = get_params_from_request(request, new_jwt_schema)
     if params['exp'] == 0:

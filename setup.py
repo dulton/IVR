@@ -19,11 +19,14 @@ requires = [
     'alembic>=0.8.0',
     'pyjwt>=1.4.0',
     'requests==2.9.1',
+    'passlib>=1.6.5',
 ]
 
 if sys.version_info < (2, 7):
     requires.append('ordereddict')
     requires.append('unittest2')
+
+
 
 setup(name='IVR',
       version='0.1.0',

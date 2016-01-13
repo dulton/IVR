@@ -3,7 +3,9 @@ from __future__ import unicode_literals, division
 import gevent
 from ivr.common.exception import IVRError
 import datetime
+import hashlib
 
+PASSWORD_PBKDF2_HMAC_SHA256_SALT = b'opensight.cn'
 
 class User(object):
     USER_FLAG_PRIVILEGE = 0x1
@@ -99,12 +101,14 @@ class UserManager(object):
                 raise IVRError("User Not Found", 404)
         return user
 
-    def add_user(self, username, **kwargs):
+    def add_user(self, username, password, **kwargs):
         with self._dao_context_mngr.context():
             user = self._user_dao.get_by_username(username)
             if user is not None:
                 raise IVRError("Username Exist", 400)
-            user = User(username, **kwargs)
+            password = hashlib.sha256(password).hexdigest()
+            user = User(username=username, password=password, **kwargs)
+
             self._user_dao.add(user)
             user = self._user_dao.get_by_username(username)
         return user
@@ -115,11 +119,31 @@ class UserManager(object):
             if user is None:
                 raise IVRError("User Not Found", 404)
             for (k, v) in kwargs.items():
-                if k in ("password", "title", "desc", "long_desc", "cellphone", "email"):
+                if k in ("title", "desc", "long_desc", "cellphone", "email"):
                     setattr(user, k, v)
             user.utime = datetime.datetime.now()
             self._user_dao.update(user)
         return user
+
+    def change_password(self, username, old_password, new_password):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is None:
+                raise IVRError("User Not Found", 404)
+            if old_password != hashlib.sha256(old_password).hexdigest():
+                raise IVRError("Old password mismatch", 404)
+            user.password = hashlib.sha256(new_password).hexdigest()
+            user.utime = datetime.datetime.now()
+            self._user_dao.update(user)
+
+    def reset_password(self, username, new_password):
+        with self._dao_context_mngr.context():
+            user = self._user_dao.get_by_username(username)
+            if user is None:
+                raise IVRError("User Not Found", 404)
+            user.password = hashlib.sha256(new_password).hexdigest()
+            user.utime = datetime.datetime.now()
+            self._user_dao.update(user)
 
     def delete_user_by_name(self, username):
         with self._dao_context_mngr.context():
