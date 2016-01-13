@@ -17,8 +17,9 @@ class UploadClient(object):
         self._login_code = login_code,
         self._login_passwd = login_passwd
 
-    def _upload(self, file_object):
+    def upload(self, file_object, content_type=None):
         #headers = {'X-HTTP-IVT-CODE', self._code,
         #          'X-HTTP-IVT-passwd', self._passwd}
-        resp = requests.post(self._upload_server, data=file_object, timeout=300)
+        headers = {'Content-Type', content_type or 'image/jpeg'}
+        resp = requests.post(self._upload_server, data=file_object, timeout=300, headers=headers)
         resp.raise_for_status()
