@@ -4,6 +4,7 @@ import gevent
 from ivr.common.exception import IVRError
 import datetime
 import hashlib
+from ivr.common.utils import STRING
 
 PASSWORD_PBKDF2_HMAC_SHA256_SALT = b'opensight.cn'
 
@@ -106,7 +107,7 @@ class UserManager(object):
             user = self._user_dao.get_by_username(username)
             if user is not None:
                 raise IVRError("Username Exist", 400)
-            password = hashlib.sha256(password).hexdigest()
+            password = STRING(hashlib.sha256(password.encode()).hexdigest())
             user = User(username=username, password=password, **kwargs)
 
             self._user_dao.add(user)
@@ -130,9 +131,9 @@ class UserManager(object):
             user = self._user_dao.get_by_username(username)
             if user is None:
                 raise IVRError("User Not Found", 404)
-            if old_password != hashlib.sha256(old_password).hexdigest():
+            if user.password != hashlib.sha256(old_password).hexdigest():
                 raise IVRError("Old password mismatch", 404)
-            user.password = hashlib.sha256(new_password).hexdigest()
+            user.password = STRING(hashlib.sha256(new_password.encode()).hexdigest())
             user.utime = datetime.datetime.now()
             self._user_dao.update(user)
 
@@ -141,7 +142,7 @@ class UserManager(object):
             user = self._user_dao.get_by_username(username)
             if user is None:
                 raise IVRError("User Not Found", 404)
-            user.password = hashlib.sha256(new_password).hexdigest()
+            user.password = STRING(hashlib.sha256(new_password.encode()).hexdigest())
             user.utime = datetime.datetime.now()
             self._user_dao.update(user)
 
