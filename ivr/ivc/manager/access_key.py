@@ -7,6 +7,7 @@ import datetime
 import random
 import base64
 import sys
+from ivr.common.utils import STRING
 
 class AccessKey(object):
     KEY_TYPE_PRIVILEGE = 0x1
@@ -52,7 +53,7 @@ class AccessKeyManager(object):
             key_bytes = bytes(bytearray(random.getrandbits(8) for i in range(byte_number)))
         else:
             key_bytes = bytes(random.getrandbits(8) for i in range(byte_number))
-        return base64.urlsafe_b64encode(key_bytes)
+        return STRING(base64.urlsafe_b64encode(key_bytes))
 
     def get_key_list_in_pages(self, key_type=None, username=None, start_index=0, max_number=65535):
         with self._dao_context_mngr.context():

@@ -19,6 +19,7 @@ from ivr.common.exception import IVRError
 from ivr.ivc.manager.user import PASSWORD_PBKDF2_HMAC_SHA256_SALT, UserManager
 from passlib.utils.pbkdf2 import pbkdf2
 import binascii
+from ivr.common.utils import STRING, is_str
 
 
 if sys.version_info[:2] < (3, 0):
@@ -60,10 +61,14 @@ def add_user(config_uri, username, password_plain, title="default", desc="",
 
     engine = engine_from_config(settings, 'sqlalchemy.')
 
-    password_hex = binascii.hexlify(pbkdf2(password_plain,
+    if is_str(password_plain):
+        password_plain = password_plain.encode()
+
+    password_hex = STRING(binascii.hexlify(pbkdf2(password_plain,
                                            PASSWORD_PBKDF2_HMAC_SHA256_SALT,
                                            100000,
-                                           prf=str('hmac-sha256')))
+                                           keylen=32,
+                                           prf=str('hmac-sha256'))))
     dao_context_mngr = AlchemyDaoContextMngr(engine)
     user_dao = SAUserDao(dao_context_mngr)
 
@@ -174,18 +179,28 @@ to print the options description for each command
 
         parser.add_argument("-u", "--username", help="username of the new user , "
                                                      "Required",
+                            type=STRING,
                             required=True)
         parser.add_argument("-p", "--password", help="plaintext password of the new user, "
                                                      "Required",
+                            type=STRING,
                             required=True)
         parser.add_argument('-T', '--user-type', type=int, help="user type of the user(Default is 1:ADMIN)",
                             default=1)
-        parser.add_argument('-t', '--title', help="title of the user(Default is username)")
-        parser.add_argument('-d', '--desc', help="short desc of the user(Default is empty)",
+        parser.add_argument('-t', '--title',
+                            type=STRING,
+                            help="title of the user(Default is username)")
+        parser.add_argument('-d', '--desc',
+                            type=STRING,
+                            help="short desc of the user(Default is empty)",
                             default='')
-        parser.add_argument('-e', '--email', help="email of the user(Default is empty)",
+        parser.add_argument('-e', '--email',
+                            type=STRING,
+                            help="email of the user(Default is empty)",
                             default='')
-        parser.add_argument('-c', '--cellphone', help="cellphone number of the user(Default is empty)",
+        parser.add_argument('-c', '--cellphone',
+                            type=STRING,
+                            help="cellphone number of the user(Default is empty)",
                             default='')
         parser.add_argument('-f', '--flags', type=int, help="flag of the user(Default is empty)",
                             default=0)
@@ -199,7 +214,9 @@ to print the options description for each command
                             default="./ivc_alembic.ini")
 
 
-        parser.add_argument("-u", "--username", help="username of the new user , "
+        parser.add_argument("-u", "--username",
+                            type=STRING,
+                            help="username of the new user , "
                                                      "Required",
                             required=True)
 
@@ -214,13 +231,17 @@ to print the options description for each command
                             default="./ivc_alembic.ini")
 
 
-        parser.add_argument("-u", "--username", help="username of the new access key , "
+        parser.add_argument("-u", "--username",
+                            type=STRING,
+                            help="username of the new access key , "
                                                      "Required",
                             required=True)
         parser.add_argument('-T', '--key-type', type=int, help="key type of the new access key(Default is 1:PRIVILEGE)",
                             default=1)
 
-        parser.add_argument('-d', '--desc', help="short desc of the access key(Default is empty)",
+        parser.add_argument('-d', '--desc',
+                            type=STRING,
+                            help="short desc of the access key(Default is empty)",
                             default='')
         parser.add_argument('--disabled', action='store_true', help="disable the new access key(Default is enabled)")
 
